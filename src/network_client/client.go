@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gorilla/websocket"
 
@@ -15,8 +17,6 @@ import (
 type Client struct {
 	id         int
 	gameWindow window.Window
-
-	lastStateView connection_messages.StateView
 }
 
 func NewClient() *Client {
@@ -34,14 +34,6 @@ func (client *Client) SetId(id int) {
 	client.id = id
 }
 
-func (client *Client) GetLastStateView() connection_messages.StateView {
-	return client.lastStateView
-}
-
-func (client *Client) UpdateStateView(stateView connection_messages.StateView) {
-	client.lastStateView = stateView
-}
-
 func (client *Client) Connect() {
 	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
 	if err != nil {
@@ -50,10 +42,19 @@ func (client *Client) Connect() {
 	defer conn.Close()
 	log.Println("Connected!")
 
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
 	go client.readFromServer(conn)
 	go client.writeToServer(conn)
 	go client.gameWindow.MainLoop()
-	select {}
+
+	select {
+	case <-client.gameWindow.CloseListener():
+		log.Println("Disconnecting!")
+	case <-signalChannel:
+		client.gameWindow.Stop()
+	}
 }
 
 func (client *Client) readFromServer(conn *websocket.Conn) {
@@ -81,7 +82,7 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 				log.Println("Err parsing StateView")
 				continue
 			}
-			client.UpdateStateView(stateView)
+			client.gameWindow.UpdateState(stateView)
 			break
 		default:
 			break

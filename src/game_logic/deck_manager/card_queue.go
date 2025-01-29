@@ -13,8 +13,20 @@ func NewCardQueue() *CardQueue {
 }
 
 func (cq *CardQueue) Pop() *Card {
+	if len(cq.Cards) == 0 {
+		return nil
+	}
 	var card *Card
 	card, cq.Cards = cq.Cards[0], cq.Cards[1:]
+	return card
+}
+
+func (cq *CardQueue) PopBack() *Card {
+	if len(cq.Cards) == 0 {
+		return nil
+	}
+	var card *Card
+	card, cq.Cards = cq.Cards[len(cq.Cards)-1], cq.Cards[:len(cq.Cards)-1]
 	return card
 }
 

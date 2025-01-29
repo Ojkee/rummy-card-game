@@ -73,20 +73,11 @@ func (s Suit) String() string {
 
 func (r Rank) String() string {
 	ranks := []string{
-		"TWO",
-		"THREE",
-		"FOUR",
-		"FIVE",
-		"SIX",
-		"SEVEN",
-		"EIGHT",
-		"NINE",
-		"TEN",
-		"JACK",
-		"QUEEN",
-		"KING",
-		"ACE",
-		"JOKER",
+		"2", "3", "4",
+		"5", "6", "7",
+		"8", "9", "10",
+		"J", "Q", "K",
+		"A", "JOKER",
 	}
 	return ranks[r]
 }
