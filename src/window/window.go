@@ -9,12 +9,23 @@ import (
 	dm "rummy-card-game/src/game_logic/deck_manager"
 )
 
+type GameState int
+
+const (
+	GAME_WAIT_ON_READY GameState = iota
+	GAME_IN_ROUND
+	GAME_FINISHED
+)
+
 type Window struct {
 	mu sync.Mutex
 
-	running       bool
-	stopChannel   chan struct{}
-	acceptChannel chan struct{}
+	running         bool
+	stopChannel     chan struct{}
+	readyButton     ReadyButton
+	isReady         bool
+	onReadyCallback func(bool)
+	gameState       GameState
 
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
@@ -27,6 +38,9 @@ func NewWindow() *Window {
 
 		running:     true,
 		stopChannel: make(chan struct{}),
+		readyButton: *NewReadyButton(),
+		isReady:     false,
+		gameState:   GAME_WAIT_ON_READY,
 
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
@@ -52,14 +66,26 @@ func (window *Window) checkEvent() {
 	if rl.IsKeyPressed(rl.KeyQ) {
 		window.Stop()
 	}
+	mousePos := rl.GetMousePosition()
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		if window.isReadyClicked(&mousePos) {
+			window.toggleReady()
+		}
+	}
 }
 
 func (window *Window) draw() {
 	rl.BeginDrawing()
 
 	rl.ClearBackground(COLOR_DARK_GRAY)
-	for _, card := range window.playerCards {
-		card.Draw()
+
+	switch window.gameState {
+	case GAME_WAIT_ON_READY:
+		window.drawWaitingPane()
+		break
+	case GAME_IN_ROUND:
+		window.drawInRound()
+		break
 	}
 	rl.EndDrawing()
 }
@@ -86,6 +112,10 @@ func (window *Window) unloadGraphics() {
 		rl.UnloadImage(image)
 	}
 	rl.UnloadFont(FONT)
+}
+
+func (window *Window) SetOnReadyCallback(onReady func(bool)) {
+	window.onReadyCallback = onReady
 }
 
 func (window *Window) CloseListener() <-chan struct{} {

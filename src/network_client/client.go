@@ -1,7 +1,6 @@
 package network_client
 
 import (
-	"bufio"
 	"encoding/json"
 	"log"
 	"os"
@@ -15,18 +14,18 @@ import (
 )
 
 type Client struct {
-	id         int
-	isReady    bool
-	readyChan  chan struct{}
-	gameWindow window.Window
+	conn        *websocket.Conn
+	gameWindow  window.Window
+	id          int
+	gameStarted bool
 }
 
 func NewClient() *Client {
 	return &Client{
-		id:         -1,
-		isReady:    false,
-		readyChan:  make(chan struct{}),
-		gameWindow: *window.NewWindow(),
+		conn:        nil,
+		gameWindow:  *window.NewWindow(),
+		id:          -1,
+		gameStarted: false,
 	}
 }
 
@@ -40,6 +39,7 @@ func (client *Client) SetId(id int) {
 
 func (client *Client) Connect() {
 	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
+	client.conn = conn
 	if err != nil {
 		log.Fatal("Error connecting: ", err)
 	}
@@ -49,8 +49,10 @@ func (client *Client) Connect() {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
-	go client.readFromServer(conn)
-	go client.writeToServer(conn)
+	client.gameWindow.SetOnReadyCallback(client.sendOnReady)
+
+	go client.readFromServer()
+	go client.writeToServer()
 	go client.gameWindow.MainLoop()
 
 	select {
@@ -61,9 +63,9 @@ func (client *Client) Connect() {
 	}
 }
 
-func (client *Client) readFromServer(conn *websocket.Conn) {
+func (client *Client) readFromServer() {
 	for {
-		_, msg, err := conn.ReadMessage()
+		_, msg, err := client.conn.ReadMessage()
 		if err != nil {
 			log.Fatal("Error reading: ", err)
 		}
@@ -110,25 +112,17 @@ func (client *Client) decodeMessageType(msg []byte) (connection_messages.MESSAGE
 	return messageType, nil
 }
 
-func (client *Client) writeToServer(conn *websocket.Conn) {
-	consoleReader := bufio.NewReader(os.Stdin)
+func (client *Client) writeToServer() {
 	for {
-		message, _ := consoleReader.ReadString('\n')
-		err := conn.WriteMessage(websocket.TextMessage, []byte(message))
-		if err != nil {
-			log.Println("Couldn't send message, err: ", err)
-			return
-		}
 	}
 }
 
-func (client *Client) toggleReady(conn *websocket.Conn) {
-	client.isReady = !client.isReady
-	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(client.isReady))
+func (client *Client) sendOnReady(readyState bool) {
+	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(readyState))
 	if err != nil {
 		log.Println("Err json.Marshal in toggleReady: ", err)
 	}
-	err = conn.WriteMessage(websocket.TextMessage, readyMsg)
+	err = client.conn.WriteMessage(websocket.TextMessage, readyMsg)
 	if err != nil {
 		log.Println("Err sending ready: ", err)
 	}
