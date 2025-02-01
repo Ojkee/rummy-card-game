@@ -16,12 +16,16 @@ import (
 
 type Client struct {
 	id         int
+	isReady    bool
+	readyChan  chan struct{}
 	gameWindow window.Window
 }
 
 func NewClient() *Client {
 	return &Client{
 		id:         -1,
+		isReady:    false,
+		readyChan:  make(chan struct{}),
 		gameWindow: *window.NewWindow(),
 	}
 }
@@ -115,5 +119,17 @@ func (client *Client) writeToServer(conn *websocket.Conn) {
 			log.Println("Couldn't send message, err: ", err)
 			return
 		}
+	}
+}
+
+func (client *Client) toggleReady(conn *websocket.Conn) {
+	client.isReady = !client.isReady
+	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(client.isReady))
+	if err != nil {
+		log.Println("Err json.Marshal in toggleReady: ", err)
+	}
+	err = conn.WriteMessage(websocket.TextMessage, readyMsg)
+	if err != nil {
+		log.Println("Err sending ready: ", err)
 	}
 }

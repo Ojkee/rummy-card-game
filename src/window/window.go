@@ -1,19 +1,20 @@
 package window
 
 import (
-	"rummy-card-game/src/connection_messages"
 	"sync"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
+	"rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
 )
 
 type Window struct {
 	mu sync.Mutex
 
-	running     bool
-	stopChannel chan struct{}
+	running       bool
+	stopChannel   chan struct{}
+	acceptChannel chan struct{}
 
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue

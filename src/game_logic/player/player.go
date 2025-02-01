@@ -1,6 +1,8 @@
 package player
 
-import dm "rummy-card-game/src/game_logic/deck_manager"
+import (
+	dm "rummy-card-game/src/game_logic/deck_manager"
+)
 
 type Player struct {
 	Id   int        `json:"id"`
