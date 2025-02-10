@@ -15,17 +15,17 @@ import (
 
 type Client struct {
 	conn        *websocket.Conn
-	gameWindow  window.Window
 	id          int
 	gameStarted bool
+	gameWindow  window.Window
 }
 
 func NewClient() *Client {
 	return &Client{
 		conn:        nil,
-		gameWindow:  *window.NewWindow(),
 		id:          -1,
 		gameStarted: false,
+		gameWindow:  *window.NewWindow(),
 	}
 }
 
@@ -51,27 +51,40 @@ func (client *Client) Connect() {
 
 	client.gameWindow.SetOnReadyCallback(client.sendOnReady)
 
-	go client.readFromServer()
-	go client.writeToServer()
-	go client.gameWindow.MainLoop()
+	go client.readFromServer(conn)
+	client.gameWindow.MainLoop()
 
 	select {
 	case <-client.gameWindow.CloseListener():
-		log.Println("Disconnecting!")
+		return
 	case <-signalChannel:
-		client.gameWindow.Stop()
+		return
 	}
 }
 
-func (client *Client) readFromServer() {
+func (client *Client) readFromServer(conn *websocket.Conn) {
 	for {
-		_, msg, err := client.conn.ReadMessage()
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Fatal("Error reading: ", err)
+			log.Println("Error reading:", err)
+			if websocket.IsUnexpectedCloseError(
+				err,
+				websocket.CloseGoingAway,
+				websocket.CloseAbnormalClosure,
+			) {
+				log.Println("websocket closed: ", err)
+			} else {
+				log.Println("Unexpeced websocket error: ", err)
+			}
+			return
 		}
 
 		var messageType connection_messages.MESSAGE_TYPE
-		messageType, err = client.decodeMessageType(msg)
+		messageType, err = connection_messages.DecodeMessageType(msg)
+		if err != nil {
+			log.Println("Error decoding message type:", err)
+			continue
+		}
 
 		switch messageType {
 		case connection_messages.ID_INFO:
@@ -81,7 +94,6 @@ func (client *Client) readFromServer() {
 				continue
 			}
 			client.SetId(idInfo.Id)
-			break
 		case connection_messages.STATE_VIEW:
 			var stateView connection_messages.StateView
 			if err = json.Unmarshal(msg, &stateView); err != nil {
@@ -89,36 +101,15 @@ func (client *Client) readFromServer() {
 				continue
 			}
 			client.gameWindow.UpdateState(stateView)
-			break
 		default:
-			break
+			log.Println("Unknown message type")
 		}
 		log.Printf("Current client (You): %v", client)
 	}
 }
 
-func (client *Client) decodeMessageType(msg []byte) (connection_messages.MESSAGE_TYPE, error) {
-	var messageDecoded map[string]json.RawMessage
-	var err error
-	err = json.Unmarshal(msg, &messageDecoded)
-	if err != nil {
-		return connection_messages.UNKNOWN, err
-	}
-	var messageType connection_messages.MESSAGE_TYPE
-	err = json.Unmarshal(messageDecoded["message_type"], &messageType)
-	if err != nil {
-		return connection_messages.UNKNOWN, err
-	}
-	return messageType, nil
-}
-
-func (client *Client) writeToServer() {
-	for {
-	}
-}
-
 func (client *Client) sendOnReady(readyState bool) {
-	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(readyState))
+	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(readyState, client.id))
 	if err != nil {
 		log.Println("Err json.Marshal in toggleReady: ", err)
 	}

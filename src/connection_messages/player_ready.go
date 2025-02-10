@@ -1,14 +1,17 @@
 package connection_messages
 
 type ReadyMessage struct {
-	DefaultMessage
+	ClientMessage
 	IsReady bool `json:"is_ready"`
 }
 
-func NewReadyMessage(status bool) *ReadyMessage {
+func NewReadyMessage(status bool, ClientId int) *ReadyMessage {
 	return &ReadyMessage{
-		DefaultMessage: DefaultMessage{
-			MessageType: PLAYER_READY,
+		ClientMessage: ClientMessage{
+			DefaultMessage: DefaultMessage{
+				MessageType: PLAYER_READY,
+			},
+			ClientId: ClientId,
 		},
 		IsReady: status,
 	}

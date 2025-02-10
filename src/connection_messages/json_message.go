@@ -31,6 +31,11 @@ type DefaultMessage struct {
 	MessageType MESSAGE_TYPE `json:"message_type"`
 }
 
+type ClientMessage struct {
+	DefaultMessage
+	ClientId int `json:"client_id"`
+}
+
 func (dm *DefaultMessage) GetMessageType() MESSAGE_TYPE {
 	return dm.MessageType
 }
