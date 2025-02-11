@@ -55,9 +55,9 @@ func (client *Client) Connect() {
 	client.gameWindow.MainLoop()
 
 	select {
-	case <-client.gameWindow.CloseListener():
-		return
 	case <-signalChannel:
+		return
+	case <-client.gameWindow.CloseListener():
 		return
 	}
 }
@@ -101,6 +101,13 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 				continue
 			}
 			client.gameWindow.UpdateState(stateView)
+		case connection_messages.GAME_STATE_INFO:
+			var gameStateInfo connection_messages.GameStateInfo
+			if err = json.Unmarshal(msg, &gameStateInfo); err != nil {
+				log.Println("Err parsing StateView")
+				continue
+			}
+			client.gameWindow.SetGameState(gameStateInfo.GameStateValue)
 		default:
 			log.Println("Unknown message type")
 		}

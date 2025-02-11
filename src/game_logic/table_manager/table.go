@@ -17,26 +17,33 @@ type Table struct {
 	TemplateDeck dm.Deck
 	DrawPile     dm.CardQueue
 	DiscardPile  dm.CardQueue
-	Players      []*player.Player
+	Players      map[int]*player.Player
 }
 
 func NewTable(maxPlayers int) *Table {
 	_template_deck := *dm.NewDeck()
 	return &Table{
 		state:        gm.PRE_START,
-		NumPlayers:   0,
 		MaxPlayers:   maxPlayers,
 		turnID:       0,
 		TemplateDeck: _template_deck,
 		DrawPile:     *dm.NewCardQueue(),
 		DiscardPile:  *dm.NewCardQueue(),
-		Players:      make([]*player.Player, 0),
+		Players:      make(map[int]*player.Player, 0),
 	}
 }
 
 func (table *Table) InitNewGame() {
 	table.shuffleInitDrawPile()
 	table.dealCards()
+}
+
+func (table *Table) AddNewPlayer(playerId int) {
+	table.Players[playerId] = player.NewPlayer(playerId)
+}
+
+func (table *Table) RemovePlayer(playerId int) {
+	delete(table.Players, playerId)
 }
 
 func (table *Table) shuffleInitDrawPile() {
@@ -52,12 +59,12 @@ func (table *Table) shuffleInitDrawPile() {
 
 func (table *Table) dealCards() {
 	numCardsOnHand := 13
-	for i := range table.NumPlayers {
+	for playerId := range table.Players {
 		hand := make([]*dm.Card, numCardsOnHand)
 		for j := range numCardsOnHand {
 			hand[j] = table.DrawPile.Pop()
 		}
-		table.Players[i].SetHand(hand)
+		table.Players[playerId].SetHand(hand)
 	}
 }
 
@@ -71,11 +78,11 @@ func (table *Table) PrintHands() {
 	}
 }
 
-func (table *Table) JsonCurrentPlayerStateView() ([]byte, error) {
+func (table *Table) JsonPlayerStateView(playerId int) ([]byte, error) {
 	sv := connection_messages.NewStateView(
 		&table.DrawPile,
 		&table.DiscardPile,
-		table.Players[table.turnID],
+		table.Players[playerId],
 		[]int{1},
 	)
 	return sv.Json()

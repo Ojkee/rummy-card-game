@@ -1,6 +1,7 @@
 package network_server
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,17 +10,18 @@ import (
 	"github.com/gorilla/websocket"
 
 	"rummy-card-game/src/connection_messages"
+	"rummy-card-game/src/game_logic/game_manager"
 	tm "rummy-card-game/src/game_logic/table_manager"
 )
 
 type Server struct {
-	upgrader    *websocket.Upgrader
-	mu          sync.Mutex
-	roomId      int
-	gameStarted bool
-	table       *tm.Table
-	connections map[int]*websocket.Conn
-	acceptions  map[int]bool
+	upgrader        *websocket.Upgrader
+	mu              sync.Mutex
+	roomId          int
+	gameStarted     bool
+	table           *tm.Table
+	connections     map[int]*websocket.Conn
+	readinessStates map[int]bool
 }
 
 func NewServer(maxPlayers int) *Server {
@@ -27,17 +29,17 @@ func NewServer(maxPlayers int) *Server {
 	for i := range maxPlayers {
 		_connections[i] = nil
 	}
-	_acceptions := make(map[int]bool)
+	_readinessStates := make(map[int]bool)
 	for i := range maxPlayers {
-		_acceptions[i] = false
+		_readinessStates[i] = false
 	}
 	return &Server{
-		mu:          sync.Mutex{},
-		roomId:      0,
-		gameStarted: false,
-		table:       tm.NewTable(maxPlayers),
-		connections: _connections,
-		acceptions:  _acceptions,
+		mu:              sync.Mutex{},
+		roomId:          0,
+		gameStarted:     false,
+		table:           tm.NewTable(maxPlayers),
+		connections:     _connections,
+		readinessStates: _readinessStates,
 	}
 }
 
@@ -76,6 +78,7 @@ func (server *Server) handleClient(conn *websocket.Conn) {
 		}
 		return
 	}
+	server.table.AddNewPlayer(playerId)
 
 	server.SendIdJson(conn, playerId)
 	go server.readFromClient(conn, playerId)
@@ -96,7 +99,38 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 			)
 			return
 		}
-		log.Printf("Connection message: %s", string(msg))
+
+		messageType, err := connection_messages.DecodeMessageType(msg)
+		if err != nil {
+			log.Println("Error decoding message type:", err)
+			continue
+		}
+
+		switch messageType {
+		case connection_messages.PLAYER_ACTION:
+			continue
+		case connection_messages.PLAYER_READY:
+			var readyMessage connection_messages.ReadyMessage
+			json.Unmarshal(msg, &readyMessage)
+			server.manageReadinessStates(readyMessage.ClientId, readyMessage.IsReady)
+		}
+	}
+}
+
+func (server *Server) manageReadinessStates(clientId int, state bool) {
+	server.readinessStates[clientId] = state
+	if server.allReady() {
+		log.Println("ALL READY")
+		for _, conn := range server.connections {
+			msg, err := connection_messages.NewGameStateInfo(game_manager.IN_GAME).Json()
+			if err != nil {
+				return
+			}
+			conn.WriteMessage(
+				websocket.TextMessage,
+				msg,
+			)
+		}
 	}
 }
 
@@ -134,16 +168,16 @@ func (server *Server) GetNextAvailablePlayerId() (int, bool) {
 	return -1, false
 }
 
-func (server *Server) SendTableJson(conn *websocket.Conn) {
+func (server *Server) SendTableJson(playerId int) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	stateView, err := server.table.JsonCurrentPlayerStateView()
+	stateView, err := server.table.JsonPlayerStateView(playerId)
 	if err != nil {
 		log.Println("Err: ", err)
 		return
 	}
-	err = conn.WriteMessage(websocket.TextMessage, stateView)
+	err = server.connections[playerId].WriteMessage(websocket.TextMessage, stateView)
 	if err != nil {
 		log.Println("Err: ", err)
 		return
@@ -167,11 +201,14 @@ func (server *Server) SendIdJson(conn *websocket.Conn, id int) {
 	}
 }
 
-func (server *Server) allAccepted() bool {
-	for _, val := range server.acceptions {
-		if val == false {
+func (server *Server) allReady() bool {
+	playerCounter := 0
+	for playerId, val := range server.readinessStates {
+		if conn, ok := server.connections[playerId]; ok && conn != nil && !val {
 			return false
+		} else if ok && conn != nil && val {
+			playerCounter++
 		}
 	}
-	return true
+	return playerCounter == server.table.MaxPlayers
 }

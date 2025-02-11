@@ -4,6 +4,6 @@ type GAME_STATE int
 
 const (
 	PRE_START GAME_STATE = iota
-	STARTED
+	IN_GAME
 	FINISHED
 )

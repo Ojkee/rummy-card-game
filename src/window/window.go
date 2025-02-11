@@ -7,14 +7,7 @@ import (
 
 	"rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
-)
-
-type GameState int
-
-const (
-	GAME_WAIT_ON_READY GameState = iota
-	GAME_IN_ROUND
-	GAME_FINISHED
+	"rummy-card-game/src/game_logic/game_manager"
 )
 
 type Window struct {
@@ -25,7 +18,7 @@ type Window struct {
 	readyButton     ReadyButton
 	isReady         bool
 	onReadyCallback func(bool)
-	gameState       GameState
+	gameState       game_manager.GAME_STATE
 
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
@@ -40,7 +33,7 @@ func NewWindow() *Window {
 		stopChannel: make(chan struct{}),
 		readyButton: *NewReadyButton(),
 		isReady:     false,
-		gameState:   GAME_WAIT_ON_READY,
+		gameState:   game_manager.PRE_START,
 
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
@@ -80,10 +73,10 @@ func (window *Window) draw() {
 	rl.ClearBackground(COLOR_DARK_GRAY)
 
 	switch window.gameState {
-	case GAME_WAIT_ON_READY:
+	case game_manager.PRE_START:
 		window.drawWaitingPane()
 		break
-	case GAME_IN_ROUND:
+	case game_manager.IN_GAME:
 		window.drawInRound()
 		break
 	}
@@ -116,6 +109,10 @@ func (window *Window) unloadGraphics() {
 
 func (window *Window) SetOnReadyCallback(onReady func(bool)) {
 	window.onReadyCallback = onReady
+}
+
+func (window *Window) SetGameState(gameState game_manager.GAME_STATE) {
+	window.gameState = gameState
 }
 
 func (window *Window) CloseListener() <-chan struct{} {
