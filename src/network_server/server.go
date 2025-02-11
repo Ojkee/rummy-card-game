@@ -14,17 +14,30 @@ import (
 	tm "rummy-card-game/src/game_logic/table_manager"
 )
 
+type ConnectedClient struct {
+	isReady bool
+	conn    *websocket.Conn
+}
+
+func NewConnectedClient() *ConnectedClient {
+	return &ConnectedClient{
+		isReady: false,
+		conn:    nil,
+	}
+}
+
 type Server struct {
-	upgrader        *websocket.Upgrader
-	mu              sync.Mutex
-	roomId          int
-	gameStarted     bool
-	table           *tm.Table
+	upgrader    *websocket.Upgrader
+	mu          sync.Mutex
+	roomId      int
+	gameStarted bool
+	table       *tm.Table
+	// clients         map[int]*ConnectedClient
 	connections     map[int]*websocket.Conn
 	readinessStates map[int]bool
 }
 
-func NewServer(maxPlayers int) *Server {
+func NewServer(minPlayers, maxPlayers int) *Server {
 	_connections := make(map[int]*websocket.Conn)
 	for i := range maxPlayers {
 		_connections[i] = nil
@@ -37,7 +50,7 @@ func NewServer(maxPlayers int) *Server {
 		mu:              sync.Mutex{},
 		roomId:          0,
 		gameStarted:     false,
-		table:           tm.NewTable(maxPlayers),
+		table:           tm.NewTable(minPlayers, maxPlayers),
 		connections:     _connections,
 		readinessStates: _readinessStates,
 	}
@@ -78,7 +91,6 @@ func (server *Server) handleClient(conn *websocket.Conn) {
 		}
 		return
 	}
-	server.table.AddNewPlayer(playerId)
 
 	server.SendIdJson(conn, playerId)
 	go server.readFromClient(conn, playerId)
@@ -94,7 +106,7 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 			log.Printf(
 				"Player disconnected, Id: %d\n\tPlayers: %d/%d\n",
 				playerId,
-				server.table.NumPlayers,
+				server.table.NumPlayers(),
 				server.table.MaxPlayers,
 			)
 			return
@@ -113,6 +125,8 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 			var readyMessage connection_messages.ReadyMessage
 			json.Unmarshal(msg, &readyMessage)
 			server.manageReadinessStates(readyMessage.ClientId, readyMessage.IsReady)
+		default:
+			continue
 		}
 	}
 }
@@ -123,14 +137,21 @@ func (server *Server) manageReadinessStates(clientId int, state bool) {
 		log.Println("ALL READY")
 		for _, conn := range server.connections {
 			msg, err := connection_messages.NewGameStateInfo(game_manager.IN_GAME).Json()
-			if err != nil {
-				return
+			if err != nil || conn == nil {
+				continue
 			}
 			conn.WriteMessage(
 				websocket.TextMessage,
 				msg,
 			)
 		}
+		server.table.InitNewGame()
+		err := server.SendStateViewAll()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		server.table.SetState(game_manager.IN_GAME)
 	}
 }
 
@@ -141,11 +162,11 @@ func (server *Server) addPlayerConnection(conn *websocket.Conn) (int, bool) {
 	if !ok {
 		return -1, false
 	}
-	server.table.NumPlayers += 1
+	server.table.AddNewPlayer(playerId)
 	log.Printf(
 		"Player joined, Id: %d\n\tPlayers: %d/%d\n",
 		playerId,
-		server.table.NumPlayers,
+		server.table.NumPlayers(),
 		server.table.MaxPlayers,
 	)
 	server.connections[playerId] = conn
@@ -156,32 +177,16 @@ func (server *Server) deletePlayerConnection(playerId int) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 	server.connections[playerId] = nil
-	server.table.NumPlayers -= 1
+	server.table.RemovePlayer(playerId)
 }
 
 func (server *Server) GetNextAvailablePlayerId() (int, bool) {
-	for key, val := range server.connections {
-		if val == nil {
+	for key := range len(server.connections) {
+		if val, ok := server.connections[key]; ok && val == nil {
 			return key, true
 		}
 	}
 	return -1, false
-}
-
-func (server *Server) SendTableJson(playerId int) {
-	server.mu.Lock()
-	defer server.mu.Unlock()
-
-	stateView, err := server.table.JsonPlayerStateView(playerId)
-	if err != nil {
-		log.Println("Err: ", err)
-		return
-	}
-	err = server.connections[playerId].WriteMessage(websocket.TextMessage, stateView)
-	if err != nil {
-		log.Println("Err: ", err)
-		return
-	}
 }
 
 func (server *Server) SendIdJson(conn *websocket.Conn, id int) {
@@ -202,13 +207,32 @@ func (server *Server) SendIdJson(conn *websocket.Conn, id int) {
 }
 
 func (server *Server) allReady() bool {
-	playerCounter := 0
-	for playerId, val := range server.readinessStates {
-		if conn, ok := server.connections[playerId]; ok && conn != nil && !val {
+	readyCounter := 0
+	for playerId, isReady := range server.readinessStates {
+		if conn, ok := server.connections[playerId]; !ok || conn == nil {
+			continue
+		} else if !isReady {
 			return false
-		} else if ok && conn != nil && val {
-			playerCounter++
+		}
+		readyCounter++
+	}
+	return readyCounter >= server.table.MinPlayers
+}
+
+func (server *Server) SendStateViewAll() error {
+	for playerId, conn := range server.connections {
+		log.Println(playerId)
+		if conn == nil {
+			continue
+		}
+		sv, err := server.table.JsonPlayerStateView(playerId)
+		if err != nil {
+			return err
+		}
+		err = conn.WriteMessage(websocket.TextMessage, sv)
+		if err != nil {
+			return err
 		}
 	}
-	return playerCounter == server.table.MaxPlayers
+	return nil
 }

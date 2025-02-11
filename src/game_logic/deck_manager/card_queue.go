@@ -30,6 +30,13 @@ func (cq *CardQueue) PopBack() *Card {
 	return card
 }
 
+func (cq *CardQueue) SeekBack() *Card {
+	if len(cq.Cards) == 0 {
+		return nil
+	}
+	return cq.Cards[len(cq.Cards)-1]
+}
+
 func (cq *CardQueue) ShuffleExtend(newCards []*Card) {
 	numAllCards := len(newCards)
 	for i := range numAllCards {

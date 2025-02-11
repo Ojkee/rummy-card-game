@@ -42,10 +42,14 @@ func (card *CardModel) drawFrame() {
 	if card.isSelected {
 		innerColor = COLOR_WALNUT_BROWN
 	}
+	var selectedOffset float32 = 0
+	if card.isSelected {
+		selectedOffset = -20
+	}
 	rl.DrawRectangleRec(
 		rl.NewRectangle(
 			card.rect.X+float32(CARD_GAP),
-			float32(card.rect.ToInt32().Y+CARD_GAP),
+			float32(card.rect.ToInt32().Y+CARD_GAP)+selectedOffset,
 			float32(CARD_INNER_WIDTH),
 			float32(CARD_INNER_HEIGHT),
 		),

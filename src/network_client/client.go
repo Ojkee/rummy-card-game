@@ -119,9 +119,24 @@ func (client *Client) sendOnReady(readyState bool) {
 	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(readyState, client.id))
 	if err != nil {
 		log.Println("Err json.Marshal in toggleReady: ", err)
+		return
 	}
 	err = client.conn.WriteMessage(websocket.TextMessage, readyMsg)
 	if err != nil {
 		log.Println("Err sending ready: ", err)
+		return
 	}
+}
+
+func (client *Client) sendDrawCard() {
+	drawAction := connection_messages.NewActionDrawMessage()
+	msg, err := drawAction.Json()
+	if err != nil {
+		log.Println("Err draw action json")
+		return
+	}
+	client.conn.WriteMessage(
+		websocket.TextMessage,
+		msg,
+	)
 }

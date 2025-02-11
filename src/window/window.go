@@ -15,11 +15,12 @@ type Window struct {
 
 	running         bool
 	stopChannel     chan struct{}
-	readyButton     ReadyButton
+	readyButton     FuncButton
 	isReady         bool
 	onReadyCallback func(bool)
 	gameState       game_manager.GAME_STATE
 
+	lastTurnId        int
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
 	lastDiscardedCard *CardModel
@@ -31,10 +32,11 @@ func NewWindow() *Window {
 
 		running:     true,
 		stopChannel: make(chan struct{}),
-		readyButton: *NewReadyButton(),
+		readyButton: *NewFuncButton(),
 		isReady:     false,
 		gameState:   game_manager.PRE_START,
 
+		lastTurnId:        -1,
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
 		lastDiscardedCard: nil,
@@ -61,8 +63,15 @@ func (window *Window) checkEvent() {
 	}
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		if window.isReadyClicked(&mousePos) {
-			window.toggleReady()
+		switch window.gameState {
+		case game_manager.PRE_START:
+			if window.readyButton.isClicked(&mousePos) {
+				window.toggleReady()
+			}
+		case game_manager.IN_GAME:
+			break
+		default:
+			break
 		}
 	}
 }
@@ -131,7 +140,7 @@ func (window *Window) UpdateState(sv connection_messages.StateView) {
 
 	window.updatePlayerHand(sv.PlayerEntity.Hand)
 	window.discardPile = sv.DiscardPile
-	window.updateLastDiscardedCard(window.discardPile.PopBack())
+	window.updateLastDiscardedCard(window.discardPile.SeekBack())
 }
 
 func (window *Window) updatePlayerHand(hand []*dm.Card) {

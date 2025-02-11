@@ -2,26 +2,6 @@ package window
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
-type ReadyButton struct {
-	rect    rl.Rectangle
-	color   rl.Color
-	content string
-}
-
-func NewReadyButton() *ReadyButton {
-	rectRect := rl.NewRectangle(
-		float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
-		float32(WINDOW_HEIGHT-READY_BUTTON_HEIGHT)/2,
-		READY_BUTTON_WIDTH,
-		READY_BUTTON_HEIGHT,
-	)
-	return &ReadyButton{
-		rect:    rectRect,
-		color:   COLOR_BUTTON_NOT_READY,
-		content: "Not ready",
-	}
-}
-
 func (window *Window) drawWaitingPane() {
 	if window.isReady {
 		window.readyButton.color = COLOR_BUTTON_READY
@@ -75,10 +55,6 @@ func (window *Window) drawReadyInfo() {
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)
-}
-
-func (window *Window) isReadyClicked(mousePos *rl.Vector2) bool {
-	return rl.CheckCollisionPointRec(*mousePos, window.readyButton.rect)
 }
 
 func (window *Window) toggleReady() {

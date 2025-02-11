@@ -17,7 +17,7 @@ func main() {
 		dm.NewCard(dm.SPADES, dm.Rank(5)),
 	})
 	w.UpdateState(
-		*connection_messages.NewStateView(dm.NewCardQueue(), dm.NewCardQueue(), p, []int{1}),
+		*connection_messages.NewStateView(0, dm.NewCardQueue(), dm.NewCardQueue(), p, []int{1}),
 	)
 	w.MainLoop()
 }

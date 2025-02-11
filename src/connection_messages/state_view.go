@@ -9,6 +9,7 @@ import (
 
 type StateView struct {
 	DefaultMessage
+	TurnPlayerId      int            `json:"turn_player_id"`
 	DrawPile          *dm.CardQueue  `json:"draw_pile"`
 	DiscardPile       *dm.CardQueue  `json:"discard_pile"`
 	PlayerEntity      *player.Player `json:"player_entity"`
@@ -16,6 +17,7 @@ type StateView struct {
 }
 
 func NewStateView(
+	turnPlayerId int,
 	drawPile, discardPile *dm.CardQueue,
 	playerEntity *player.Player,
 	opponentsNumCards []int,
@@ -24,6 +26,7 @@ func NewStateView(
 		DefaultMessage: DefaultMessage{
 			MessageType: STATE_VIEW,
 		},
+		TurnPlayerId:      turnPlayerId,
 		DrawPile:          drawPile,
 		DiscardPile:       discardPile,
 		PlayerEntity:      playerEntity,

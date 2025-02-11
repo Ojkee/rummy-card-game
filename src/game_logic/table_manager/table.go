@@ -11,7 +11,7 @@ import (
 
 type Table struct {
 	state        gm.GAME_STATE
-	NumPlayers   int
+	MinPlayers   int
 	MaxPlayers   int
 	turnID       int
 	TemplateDeck dm.Deck
@@ -20,13 +20,13 @@ type Table struct {
 	Players      map[int]*player.Player
 }
 
-func NewTable(maxPlayers int) *Table {
-	_template_deck := *dm.NewDeck()
+func NewTable(minPlayers, maxPlayers int) *Table {
 	return &Table{
 		state:        gm.PRE_START,
+		MinPlayers:   minPlayers,
 		MaxPlayers:   maxPlayers,
 		turnID:       0,
-		TemplateDeck: _template_deck,
+		TemplateDeck: *dm.NewDeck(),
 		DrawPile:     *dm.NewCardQueue(),
 		DiscardPile:  *dm.NewCardQueue(),
 		Players:      make(map[int]*player.Player, 0),
@@ -80,6 +80,7 @@ func (table *Table) PrintHands() {
 
 func (table *Table) JsonPlayerStateView(playerId int) ([]byte, error) {
 	sv := connection_messages.NewStateView(
+		table.turnID,
 		&table.DrawPile,
 		&table.DiscardPile,
 		table.Players[playerId],
@@ -92,8 +93,12 @@ func (table *Table) GetTurnId() int {
 	return table.turnID
 }
 
+func (table *Table) NumPlayers() int {
+	return len(table.Players)
+}
+
 func (table *Table) NextTurn() {
-	table.turnID = (table.turnID + 1) % table.NumPlayers
+	table.turnID = (table.turnID + 1) % table.NumPlayers()
 }
 
 func (table *Table) GetState() gm.GAME_STATE {
@@ -105,5 +110,5 @@ func (table *Table) SetState(state gm.GAME_STATE) {
 }
 
 func (table *Table) CanPlayerJoin() bool {
-	return table.NumPlayers < table.MaxPlayers
+	return table.NumPlayers() < table.MaxPlayers
 }
