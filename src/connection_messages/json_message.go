@@ -1,6 +1,8 @@
 package connection_messages
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type MESSAGE_TYPE int
 
@@ -10,6 +12,7 @@ const (
 	PLAYER_READY
 	PLAYER_ACTION
 	GAME_STATE_INFO
+	GAME_WINDOW_TEXT
 	UNKNOWN
 )
 
@@ -26,6 +29,7 @@ func MessageTypeOfString(typeStr string) MESSAGE_TYPE {
 
 type JsonMessage interface {
 	GetMessageType() MESSAGE_TYPE
+	Json() ([]byte, error)
 }
 
 type DefaultMessage struct {

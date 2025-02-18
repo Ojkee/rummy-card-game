@@ -1,6 +1,8 @@
 package window
 
 import (
+	"time"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	dm "rummy-card-game/src/game_logic/deck_manager"
@@ -17,6 +19,8 @@ var (
 	FONT_PATH    string  = "src/window/assets/fonts/Child-Hood.otf"
 	FONT         rl.Font
 )
+
+var TIME_ON_SCREEN time.Duration = time.Second * 3
 
 var (
 	COLOR_DARK_GRAY        = rl.NewColor(51, 51, 51, 255)
@@ -42,6 +46,25 @@ const (
 	CARD_GAP          int32 = 2
 	CARD_INNER_WIDTH  int32 = CARD_WIDTH - CARD_GAP*2
 	CARD_INNER_HEIGHT int32 = CARD_HEIGHT - CARD_GAP*2
+)
+
+const (
+	PILES_OFFSET float32 = float32(CARD_WIDTH)/2 + 10
+)
+
+var (
+	DISCARD_PILE_POS = rl.NewRectangle(
+		float32(WINDOW_WIDTH-CARD_WIDTH)/2-PILES_OFFSET,
+		float32(WINDOW_HEIGHT-CARD_HEIGHT)/2,
+		float32(CARD_WIDTH),
+		float32(CARD_HEIGHT),
+	)
+	DRAW_PILE_POS = rl.NewRectangle(
+		float32(WINDOW_WIDTH-CARD_WIDTH)/2+PILES_OFFSET,
+		float32(WINDOW_HEIGHT-CARD_HEIGHT)/2,
+		float32(CARD_WIDTH),
+		float32(CARD_HEIGHT),
+	)
 )
 
 const (

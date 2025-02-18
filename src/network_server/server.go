@@ -9,22 +9,10 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"rummy-card-game/src/connection_messages"
-	"rummy-card-game/src/game_logic/game_manager"
+	cm "rummy-card-game/src/connection_messages"
+	gm "rummy-card-game/src/game_logic/game_manager"
 	tm "rummy-card-game/src/game_logic/table_manager"
 )
-
-type ConnectedClient struct {
-	isReady bool
-	conn    *websocket.Conn
-}
-
-func NewConnectedClient(conn *websocket.Conn) *ConnectedClient {
-	return &ConnectedClient{
-		isReady: false,
-		conn:    conn,
-	}
-}
 
 type Server struct {
 	upgrader    *websocket.Upgrader
@@ -105,17 +93,21 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 			return
 		}
 
-		messageType, err := connection_messages.DecodeMessageType(msg)
+		messageType, err := cm.DecodeMessageType(msg)
 		if err != nil {
 			log.Println("Error decoding message type:", err)
 			continue
 		}
 
 		switch messageType {
-		case connection_messages.PLAYER_ACTION:
-			continue
-		case connection_messages.PLAYER_READY:
-			var readyMessage connection_messages.ReadyMessage
+		case cm.PLAYER_ACTION:
+			err = server.handleClientAction(msg)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+		case cm.PLAYER_READY:
+			var readyMessage cm.ReadyMessage
 			json.Unmarshal(msg, &readyMessage)
 			server.manageReadinessStates(readyMessage.ClientId, readyMessage.IsReady)
 		default:
@@ -132,7 +124,7 @@ func (server *Server) manageReadinessStates(clientId int, state bool) {
 			if client == nil {
 				continue
 			}
-			msg, err := connection_messages.NewGameStateInfo(game_manager.IN_GAME).Json()
+			msg, err := cm.NewGameStateInfo(gm.IN_GAME).Json()
 			if err != nil {
 				continue
 			}
@@ -147,7 +139,7 @@ func (server *Server) manageReadinessStates(clientId int, state bool) {
 			log.Println(err)
 			return
 		}
-		server.table.SetState(game_manager.IN_GAME)
+		server.table.SetState(gm.IN_GAME)
 	}
 }
 
@@ -189,7 +181,7 @@ func (server *Server) SendIdJson(conn *websocket.Conn, id int) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
 
-	idInfo := connection_messages.NewIdInfo(id)
+	idInfo := cm.NewIdInfo(id)
 	idInfoJson, err := idInfo.Json()
 	if err != nil {
 		log.Println("Err: ", err)

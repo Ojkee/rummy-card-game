@@ -20,3 +20,7 @@ func NewPlayer(id int) *Player {
 func (p *Player) SetHand(newHand []*dm.Card) {
 	p.Hand = newHand
 }
+
+func (p *Player) DrawCard(card *dm.Card) {
+	p.Hand = append(p.Hand, card)
+}

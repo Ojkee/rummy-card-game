@@ -112,3 +112,8 @@ func (table *Table) SetState(state gm.GAME_STATE) {
 func (table *Table) CanPlayerJoin() bool {
 	return table.NumPlayers() < table.MaxPlayers
 }
+
+func (table *Table) PlayerDrawCard(playerId int) {
+	newCard := table.DrawPile.PopBack()
+	table.Players[playerId].DrawCard(newCard)
+}

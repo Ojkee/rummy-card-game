@@ -5,25 +5,29 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	"rummy-card-game/src/connection_messages"
+	cm "rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
 	"rummy-card-game/src/game_logic/game_manager"
 )
 
 type Window struct {
-	mu sync.Mutex
+	mu       sync.Mutex
+	clientId int
 
-	running         bool
-	stopChannel     chan struct{}
-	readyButton     FuncButton
-	isReady         bool
-	onReadyCallback func(bool)
-	gameState       game_manager.GAME_STATE
+	onReadyCallback    func(bool)
+	sendActionCallback func(cm.ActionMessage)
+
+	running     bool
+	stopChannel chan struct{}
+	readyButton FuncButton
+	isReady     bool
+	gameState   game_manager.GAME_STATE
 
 	lastTurnId        int
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
 	lastDiscardedCard *CardModel
+	drawPile          *DrawPileButton
 }
 
 func NewWindow() *Window {
@@ -39,7 +43,8 @@ func NewWindow() *Window {
 		lastTurnId:        -1,
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
-		lastDiscardedCard: nil,
+		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS),
+		drawPile:          NewDrawPileButton(),
 	}
 }
 
@@ -69,7 +74,7 @@ func (window *Window) checkEvent() {
 				window.toggleReady()
 			}
 		case game_manager.IN_GAME:
-			break
+			window.inRoundManager(&mousePos)
 		default:
 			break
 		}
@@ -120,6 +125,14 @@ func (window *Window) SetOnReadyCallback(onReady func(bool)) {
 	window.onReadyCallback = onReady
 }
 
+func (window *Window) SetActionMessageCallback(sendAction func(cm.ActionMessage)) {
+	window.sendActionCallback = sendAction
+}
+
+func (window *Window) SetId(id int) {
+	window.clientId = id
+}
+
 func (window *Window) SetGameState(gameState game_manager.GAME_STATE) {
 	window.gameState = gameState
 }
@@ -134,7 +147,7 @@ func (window *Window) Stop() {
 	close(window.stopChannel)
 }
 
-func (window *Window) UpdateState(sv connection_messages.StateView) {
+func (window *Window) UpdateState(sv cm.StateView) {
 	window.mu.Lock()
 	defer window.mu.Unlock()
 
@@ -161,11 +174,5 @@ func (window *Window) updatePlayerHand(hand []*dm.Card) {
 }
 
 func (window *Window) updateLastDiscardedCard(card *dm.Card) {
-	rectCenter := rl.NewRectangle(
-		float32(WINDOW_WIDTH-CARD_WIDTH)/2,
-		float32(WINDOW_HEIGHT-CARD_HEIGHT)/2,
-		float32(CARD_WIDTH),
-		float32(CARD_HEIGHT),
-	)
-	window.lastDiscardedCard = NewCardModel(card, rectCenter)
+	window.lastDiscardedCard = NewCardModel(card, DISCARD_PILE_POS)
 }

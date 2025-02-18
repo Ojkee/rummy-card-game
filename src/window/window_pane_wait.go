@@ -2,6 +2,11 @@ package window
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
+func (window *Window) toggleReady() {
+	window.isReady = !window.isReady
+	window.onReadyCallback(window.isReady)
+}
+
 func (window *Window) drawWaitingPane() {
 	if window.isReady {
 		window.readyButton.color = COLOR_BUTTON_READY
@@ -55,9 +60,4 @@ func (window *Window) drawReadyInfo() {
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)
-}
-
-func (window *Window) toggleReady() {
-	window.isReady = !window.isReady
-	window.onReadyCallback(window.isReady)
 }

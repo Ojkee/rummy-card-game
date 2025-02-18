@@ -13,14 +13,15 @@ type CardModel struct {
 }
 
 func NewCardModel(card *dm.Card, rect rl.Rectangle) *CardModel {
-	if card == nil {
-		return nil
-	}
 	return &CardModel{
 		srcCard:    card,
 		isSelected: false,
 		rect:       rect,
 	}
+}
+
+func (card *CardModel) SetSrcCard(srcCard *dm.Card) {
+	card.srcCard = srcCard
 }
 
 func (card *CardModel) Draw() {

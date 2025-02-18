@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"rummy-card-game/src/connection_messages"
+	cm "rummy-card-game/src/connection_messages"
 	"rummy-card-game/src/window"
 )
 
@@ -35,6 +35,7 @@ func (client *Client) GetId() int {
 
 func (client *Client) SetId(id int) {
 	client.id = id
+	client.gameWindow.SetId(id)
 }
 
 func (client *Client) Connect() {
@@ -50,6 +51,7 @@ func (client *Client) Connect() {
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	client.gameWindow.SetOnReadyCallback(client.sendOnReady)
+	client.gameWindow.SetActionMessageCallback(client.sendActionMessage)
 
 	go client.readFromServer(conn)
 	client.gameWindow.MainLoop()
@@ -79,35 +81,42 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 			return
 		}
 
-		var messageType connection_messages.MESSAGE_TYPE
-		messageType, err = connection_messages.DecodeMessageType(msg)
+		var messageType cm.MESSAGE_TYPE
+		messageType, err = cm.DecodeMessageType(msg)
 		if err != nil {
 			log.Println("Error decoding message type:", err)
 			continue
 		}
 
 		switch messageType {
-		case connection_messages.ID_INFO:
-			var idInfo connection_messages.IdInfo
+		case cm.ID_INFO:
+			var idInfo cm.IdInfo
 			if err = json.Unmarshal(msg, &idInfo); err != nil {
 				log.Println("Err parsing Id")
 				continue
 			}
 			client.SetId(idInfo.Id)
-		case connection_messages.STATE_VIEW:
-			var stateView connection_messages.StateView
+		case cm.STATE_VIEW:
+			var stateView cm.StateView
 			if err = json.Unmarshal(msg, &stateView); err != nil {
 				log.Println("Err parsing StateView")
 				continue
 			}
 			client.gameWindow.UpdateState(stateView)
-		case connection_messages.GAME_STATE_INFO:
-			var gameStateInfo connection_messages.GameStateInfo
+		case cm.GAME_STATE_INFO:
+			var gameStateInfo cm.GameStateInfo
 			if err = json.Unmarshal(msg, &gameStateInfo); err != nil {
 				log.Println("Err parsing StateView")
 				continue
 			}
 			client.gameWindow.SetGameState(gameStateInfo.GameStateValue)
+		case cm.GAME_WINDOW_TEXT:
+			var gameWindowText cm.GameWindowText
+			if err = json.Unmarshal(msg, &gameWindowText); err != nil {
+				log.Println("Err parsing GameWindowText")
+				continue
+			}
+			log.Println(gameWindowText.Value) // TODO REMOVE
 		default:
 			log.Println("Unknown message type")
 		}
@@ -116,7 +125,7 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 }
 
 func (client *Client) sendOnReady(readyState bool) {
-	readyMsg, err := json.Marshal(connection_messages.NewReadyMessage(readyState, client.id))
+	readyMsg, err := json.Marshal(cm.NewReadyMessage(readyState, client.id))
 	if err != nil {
 		log.Println("Err json.Marshal in toggleReady: ", err)
 		return
@@ -128,9 +137,8 @@ func (client *Client) sendOnReady(readyState bool) {
 	}
 }
 
-func (client *Client) sendDrawCard() {
-	drawAction := connection_messages.NewActionDrawMessage()
-	msg, err := drawAction.Json()
+func (client *Client) sendActionMessage(actionMsg cm.ActionMessage) {
+	msg, err := actionMsg.Json()
 	if err != nil {
 		log.Println("Err draw action json")
 		return
