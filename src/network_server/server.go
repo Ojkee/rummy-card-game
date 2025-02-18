@@ -19,10 +19,10 @@ type ConnectedClient struct {
 	conn    *websocket.Conn
 }
 
-func NewConnectedClient() *ConnectedClient {
+func NewConnectedClient(conn *websocket.Conn) *ConnectedClient {
 	return &ConnectedClient{
 		isReady: false,
-		conn:    nil,
+		conn:    conn,
 	}
 }
 
@@ -32,27 +32,20 @@ type Server struct {
 	roomId      int
 	gameStarted bool
 	table       *tm.Table
-	// clients         map[int]*ConnectedClient
-	connections     map[int]*websocket.Conn
-	readinessStates map[int]bool
+	clients     map[int]*ConnectedClient
 }
 
 func NewServer(minPlayers, maxPlayers int) *Server {
-	_connections := make(map[int]*websocket.Conn)
+	_clients := make(map[int]*ConnectedClient)
 	for i := range maxPlayers {
-		_connections[i] = nil
-	}
-	_readinessStates := make(map[int]bool)
-	for i := range maxPlayers {
-		_readinessStates[i] = false
+		_clients[i] = nil
 	}
 	return &Server{
-		mu:              sync.Mutex{},
-		roomId:          0,
-		gameStarted:     false,
-		table:           tm.NewTable(minPlayers, maxPlayers),
-		connections:     _connections,
-		readinessStates: _readinessStates,
+		mu:          sync.Mutex{},
+		roomId:      0,
+		gameStarted: false,
+		table:       tm.NewTable(minPlayers, maxPlayers),
+		clients:     _clients,
 	}
 }
 
@@ -132,15 +125,18 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 }
 
 func (server *Server) manageReadinessStates(clientId int, state bool) {
-	server.readinessStates[clientId] = state
+	server.clients[clientId].isReady = state
 	if server.allReady() {
 		log.Println("ALL READY")
-		for _, conn := range server.connections {
-			msg, err := connection_messages.NewGameStateInfo(game_manager.IN_GAME).Json()
-			if err != nil || conn == nil {
+		for _, client := range server.clients {
+			if client == nil {
 				continue
 			}
-			conn.WriteMessage(
+			msg, err := connection_messages.NewGameStateInfo(game_manager.IN_GAME).Json()
+			if err != nil {
+				continue
+			}
+			client.conn.WriteMessage(
 				websocket.TextMessage,
 				msg,
 			)
@@ -169,21 +165,21 @@ func (server *Server) addPlayerConnection(conn *websocket.Conn) (int, bool) {
 		server.table.NumPlayers(),
 		server.table.MaxPlayers,
 	)
-	server.connections[playerId] = conn
+	server.clients[playerId] = NewConnectedClient(conn)
 	return playerId, true
 }
 
 func (server *Server) deletePlayerConnection(playerId int) {
 	server.mu.Lock()
 	defer server.mu.Unlock()
-	server.connections[playerId] = nil
+	server.clients[playerId] = nil
 	server.table.RemovePlayer(playerId)
 }
 
 func (server *Server) GetNextAvailablePlayerId() (int, bool) {
-	for key := range len(server.connections) {
-		if val, ok := server.connections[key]; ok && val == nil {
-			return key, true
+	for playerId, client := range server.clients {
+		if client == nil {
+			return playerId, true
 		}
 	}
 	return -1, false
@@ -208,10 +204,11 @@ func (server *Server) SendIdJson(conn *websocket.Conn, id int) {
 
 func (server *Server) allReady() bool {
 	readyCounter := 0
-	for playerId, isReady := range server.readinessStates {
-		if conn, ok := server.connections[playerId]; !ok || conn == nil {
+	for _, client := range server.clients {
+		if client == nil {
 			continue
-		} else if !isReady {
+		}
+		if !client.isReady {
 			return false
 		}
 		readyCounter++
@@ -220,16 +217,15 @@ func (server *Server) allReady() bool {
 }
 
 func (server *Server) SendStateViewAll() error {
-	for playerId, conn := range server.connections {
-		log.Println(playerId)
-		if conn == nil {
+	for playerId, client := range server.clients {
+		if client == nil || client.conn == nil {
 			continue
 		}
 		sv, err := server.table.JsonPlayerStateView(playerId)
 		if err != nil {
 			return err
 		}
-		err = conn.WriteMessage(websocket.TextMessage, sv)
+		err = client.conn.WriteMessage(websocket.TextMessage, sv)
 		if err != nil {
 			return err
 		}
