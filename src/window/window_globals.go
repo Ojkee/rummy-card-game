@@ -1,8 +1,6 @@
 package window
 
 import (
-	"time"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	dm "rummy-card-game/src/game_logic/deck_manager"
@@ -20,7 +18,7 @@ var (
 	FONT         rl.Font
 )
 
-var TIME_ON_SCREEN time.Duration = time.Second * 3
+var TIME_ON_SCREEN = 3.0
 
 var (
 	COLOR_DARK_GRAY        = rl.NewColor(51, 51, 51, 255)

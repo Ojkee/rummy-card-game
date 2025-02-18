@@ -28,6 +28,9 @@ type Window struct {
 	discardPile       *dm.CardQueue
 	lastDiscardedCard *CardModel
 	drawPile          *DrawPileButton
+
+	displayText string
+	displayTime float32
 }
 
 func NewWindow() *Window {
@@ -154,6 +157,11 @@ func (window *Window) UpdateState(sv cm.StateView) {
 	window.updatePlayerHand(sv.PlayerEntity.Hand)
 	window.discardPile = sv.DiscardPile
 	window.updateLastDiscardedCard(window.discardPile.SeekBack())
+}
+
+func (window *Window) PlaceText(text string) {
+	window.displayText = text
+	window.displayTime = float32(TIME_ON_SCREEN)
 }
 
 func (window *Window) updatePlayerHand(hand []*dm.Card) {

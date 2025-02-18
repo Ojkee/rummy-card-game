@@ -19,4 +19,19 @@ func (window *Window) drawInRound() {
 	}
 	window.lastDiscardedCard.Draw()
 	window.drawPile.Draw()
+	window.drawDisplayText()
+}
+
+func (window *Window) drawDisplayText() {
+	if window.displayTime > 0 {
+		rl.DrawTextEx(
+			FONT,
+			window.displayText,
+			rl.NewVector2(10, 10),
+			float32(FONT_SIZE),
+			FONT_SPACING,
+			COLOR_BEIGE,
+		)
+		window.displayTime -= rl.GetFrameTime()
+	}
 }

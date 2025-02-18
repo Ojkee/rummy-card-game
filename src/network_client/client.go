@@ -116,7 +116,7 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 				log.Println("Err parsing GameWindowText")
 				continue
 			}
-			log.Println(gameWindowText.Value) // TODO REMOVE
+			client.gameWindow.PlaceText(gameWindowText.Value)
 		default:
 			log.Println("Unknown message type")
 		}
