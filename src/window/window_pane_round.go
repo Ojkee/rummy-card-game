@@ -20,6 +20,7 @@ func (window *Window) drawInRound() {
 	window.lastDiscardedCard.Draw()
 	window.drawPile.Draw()
 	window.drawDisplayText()
+	window.drawTurnInfo()
 }
 
 func (window *Window) drawDisplayText() {
@@ -33,5 +34,18 @@ func (window *Window) drawDisplayText() {
 			COLOR_BEIGE,
 		)
 		window.displayTime -= rl.GetFrameTime()
+	}
+}
+
+func (window *Window) drawTurnInfo() {
+	if window.currentTurnId == window.clientId {
+		rl.DrawTextEx(
+			FONT,
+			"Your turn",
+			rl.NewVector2(10, float32(WINDOW_HEIGHT)-20),
+			float32(FONT_SIZE),
+			FONT_SPACING,
+			COLOR_BEIGE,
+		)
 	}
 }

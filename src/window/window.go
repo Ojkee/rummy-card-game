@@ -23,7 +23,7 @@ type Window struct {
 	isReady     bool
 	gameState   game_manager.GAME_STATE
 
-	lastTurnId        int
+	currentTurnId     int
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
 	lastDiscardedCard *CardModel
@@ -43,7 +43,7 @@ func NewWindow() *Window {
 		isReady:     false,
 		gameState:   game_manager.PRE_START,
 
-		lastTurnId:        -1,
+		currentTurnId:     -1,
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
 		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS),
@@ -157,6 +157,7 @@ func (window *Window) UpdateState(sv cm.StateView) {
 	window.updatePlayerHand(sv.PlayerEntity.Hand)
 	window.discardPile = sv.DiscardPile
 	window.updateLastDiscardedCard(window.discardPile.SeekBack())
+	window.currentTurnId = sv.TurnPlayerId
 }
 
 func (window *Window) PlaceText(text string) {

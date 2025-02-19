@@ -13,11 +13,13 @@ type Table struct {
 	state        gm.GAME_STATE
 	MinPlayers   int
 	MaxPlayers   int
-	turnID       int
+	turnId       int
+	turnIdx      int
 	TemplateDeck dm.Deck
 	DrawPile     dm.CardQueue
 	DiscardPile  dm.CardQueue
 	Players      map[int]*player.Player
+	playerIds    []int
 }
 
 func NewTable(minPlayers, maxPlayers int) *Table {
@@ -25,17 +27,20 @@ func NewTable(minPlayers, maxPlayers int) *Table {
 		state:        gm.PRE_START,
 		MinPlayers:   minPlayers,
 		MaxPlayers:   maxPlayers,
-		turnID:       0,
+		turnId:       -1,
+		turnIdx:      0,
 		TemplateDeck: *dm.NewDeck(),
 		DrawPile:     *dm.NewCardQueue(),
 		DiscardPile:  *dm.NewCardQueue(),
 		Players:      make(map[int]*player.Player, 0),
+		playerIds:    make([]int, 0),
 	}
 }
 
 func (table *Table) InitNewGame() {
 	table.shuffleInitDrawPile()
 	table.dealCards()
+	table.initPlayersIds()
 }
 
 func (table *Table) AddNewPlayer(playerId int) {
@@ -80,7 +85,7 @@ func (table *Table) PrintHands() {
 
 func (table *Table) JsonPlayerStateView(playerId int) ([]byte, error) {
 	sv := connection_messages.NewStateView(
-		table.turnID,
+		table.turnId,
 		&table.DrawPile,
 		&table.DiscardPile,
 		table.Players[playerId],
@@ -90,15 +95,28 @@ func (table *Table) JsonPlayerStateView(playerId int) ([]byte, error) {
 }
 
 func (table *Table) GetTurnId() int {
-	return table.turnID
+	return table.turnId
 }
 
 func (table *Table) NumPlayers() int {
 	return len(table.Players)
 }
 
+func (table *Table) initPlayersIds() {
+	table.turnIdx = 0
+	table.playerIds = make([]int, 0)
+	for playerId := range table.Players {
+		table.playerIds = append(table.playerIds, playerId)
+	}
+	if len(table.playerIds) == 0 {
+		return
+	}
+	table.turnId = table.playerIds[table.turnIdx]
+}
+
 func (table *Table) NextTurn() {
-	table.turnID = (table.turnID + 1) % table.NumPlayers()
+	table.turnIdx = (table.turnIdx + 1) % table.NumPlayers()
+	table.turnId = table.playerIds[table.turnIdx]
 }
 
 func (table *Table) GetState() gm.GAME_STATE {
