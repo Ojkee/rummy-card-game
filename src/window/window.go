@@ -31,6 +31,8 @@ type Window struct {
 
 	displayText string
 	displayTime float32
+
+	discardButton FuncButton
 }
 
 func NewWindow() *Window {
@@ -39,15 +41,28 @@ func NewWindow() *Window {
 
 		running:     true,
 		stopChannel: make(chan struct{}),
-		readyButton: *NewFuncButton(),
-		isReady:     false,
-		gameState:   game_manager.PRE_START,
+		readyButton: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
+				float32(WINDOW_HEIGHT-READY_BUTTON_HEIGHT)/2,
+				READY_BUTTON_WIDTH,
+				READY_BUTTON_HEIGHT,
+			),
+			"Not ready",
+		),
+		isReady:   false,
+		gameState: game_manager.PRE_START,
 
 		currentTurnId:     -1,
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
 		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS),
 		drawPile:          NewDrawPileButton(),
+
+		discardButton: *NewFuncButton(
+			rl.NewRectangle(0, 0, 50, 50),
+			"Discard",
+		),
 	}
 }
 
@@ -162,7 +177,7 @@ func (window *Window) UpdateState(sv cm.StateView) {
 
 func (window *Window) PlaceText(text string) {
 	window.displayText = text
-	window.displayTime = float32(TIME_ON_SCREEN)
+	window.displayTime = TIME_ON_SCREEN
 }
 
 func (window *Window) updatePlayerHand(hand []*dm.Card) {

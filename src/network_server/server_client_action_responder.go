@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 
 	cm "rummy-card-game/src/connection_messages"
+	dm "rummy-card-game/src/game_logic/deck_manager"
+	gm "rummy-card-game/src/game_logic/game_manager"
 )
 
 func (server *Server) handleClientAction(actionMsg []byte) error {
@@ -20,6 +22,14 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 		var actionDrawMessage cm.ActionDrawMessage
 		json.Unmarshal(actionMsg, &actionDrawMessage)
 		err := server.handleClientDrawCard(actionDrawMessage.ClientId)
+		return err
+	case cm.DISCARD_CARD:
+		var actionDiscardMessage cm.ActionDiscardMessage
+		json.Unmarshal(actionMsg, &actionDiscardMessage)
+		err := server.handleClientDiscardCard(
+			actionDiscardMessage.ClientId,
+			actionDiscardMessage.Card,
+		)
 		return err
 	case cm.UNSUPPORTED:
 	default:
@@ -45,6 +55,34 @@ func (server *Server) handleClientDrawCard(clientId int) error {
 	}
 	server.table.PlayerDrawCard(clientId)
 	server.clients[clientId].drawnCard = true
+	server.SendStateViewAll()
+	return nil
+}
+
+func (server *Server) handleClientDiscardCard(clientId int, card *dm.Card) error {
+	err := server.table.PlayerDiscardCard(clientId, card)
+	if err != nil {
+		return err
+	}
+	if server.table.IsWinner(clientId) {
+		msg, err := cm.NewGameStateInfo(gm.FINISHED).Json()
+		if err != nil {
+			return err
+		}
+		for _, client := range server.clients {
+			if client == nil {
+				continue
+			}
+			client.conn.WriteMessage(
+				websocket.TextMessage,
+				msg,
+			)
+		}
+		server.table.SetState(gm.FINISHED)
+		return nil
+	}
+
+	server.table.NextTurn()
 	server.SendStateViewAll()
 	return nil
 }

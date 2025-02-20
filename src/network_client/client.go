@@ -120,7 +120,6 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 		default:
 			log.Println("Unknown message type")
 		}
-		log.Printf("Current client (You): %v", client)
 	}
 }
 

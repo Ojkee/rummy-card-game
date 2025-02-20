@@ -77,7 +77,7 @@ func (r Rank) String() string {
 		"5", "6", "7",
 		"8", "9", "10",
 		"J", "Q", "K",
-		"A", "JOKER",
+		"A", "JOK",
 	}
 	return ranks[r]
 }

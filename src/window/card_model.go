@@ -34,18 +34,21 @@ func (card *CardModel) Draw() {
 }
 
 func (card *CardModel) drawFrame() {
-	rl.DrawRectangleRec(
-		card.rect,
+	var selectedOffset float32 = 0
+	if card.isSelected {
+		selectedOffset = -20
+	}
+	rl.DrawRectangle(
+		card.rect.ToInt32().X,
+		card.rect.ToInt32().Y+int32(selectedOffset),
+		card.rect.ToInt32().Width,
+		card.rect.ToInt32().Height,
 		COLOR_BEIGE,
 	)
 
 	innerColor := COLOR_TAUPE
 	if card.isSelected {
 		innerColor = COLOR_WALNUT_BROWN
-	}
-	var selectedOffset float32 = 0
-	if card.isSelected {
-		selectedOffset = -20
 	}
 	rl.DrawRectangleRec(
 		rl.NewRectangle(
@@ -61,9 +64,13 @@ func (card *CardModel) drawFrame() {
 func (card *CardModel) drawSuitTexture() {
 	var rotation float32 = 0
 	var scale float32 = 1
+	var selectedOffset float32 = 0
+	if card.isSelected {
+		selectedOffset = -20
+	}
 	rl.DrawTextureEx(
 		RANK_IMGS[card.srcCard.Suit],
-		rl.NewVector2(card.rect.X+float32(CARD_GAP), card.rect.Y+float32(CARD_GAP)),
+		rl.NewVector2(card.rect.X+float32(CARD_GAP), card.rect.Y+float32(CARD_GAP)+selectedOffset),
 		rotation,
 		scale,
 		COLOR_DARK_GRAY,
@@ -73,12 +80,16 @@ func (card *CardModel) drawSuitTexture() {
 func (card *CardModel) drawRank() {
 	randString := card.srcCard.Rank.String()
 	textVec := GetTextVec(randString)
+	var selectedOffset float32 = 0
+	if card.isSelected {
+		selectedOffset = -20
+	}
 	rl.DrawTextEx(
 		FONT,
 		randString,
 		rl.NewVector2(
 			card.rect.X+float32(SUIT_WIDTH-int32(textVec.X))/2,
-			float32(CARD_POS_Y+SUIT_HEIGHT*3/2),
+			float32(CARD_POS_Y+SUIT_HEIGHT*3/2)+selectedOffset,
 		),
 		float32(FONT_SIZE),
 		FONT_SPACING,

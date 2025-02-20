@@ -8,20 +8,18 @@ type FuncButton struct {
 	content string
 }
 
-func NewFuncButton() *FuncButton {
-	rectRect := rl.NewRectangle(
-		float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
-		float32(WINDOW_HEIGHT-READY_BUTTON_HEIGHT)/2,
-		READY_BUTTON_WIDTH,
-		READY_BUTTON_HEIGHT,
-	)
+func NewFuncButton(rect rl.Rectangle, content string) *FuncButton {
 	return &FuncButton{
-		rect:    rectRect,
+		rect:    rect,
 		color:   COLOR_BUTTON_NOT_READY,
-		content: "Not ready",
+		content: content,
 	}
 }
 
 func (fb *FuncButton) isClicked(mousePos *rl.Vector2) bool {
 	return rl.CheckCollisionPointRec(*mousePos, fb.rect)
+}
+
+func (fb *FuncButton) UpdateRect(rect *rl.Rectangle) {
+	fb.rect = *rect
 }

@@ -18,7 +18,7 @@ var (
 	FONT         rl.Font
 )
 
-var TIME_ON_SCREEN = 3.0
+var TIME_ON_SCREEN float32 = 3.0
 
 var (
 	COLOR_DARK_GRAY        = rl.NewColor(51, 51, 51, 255)
@@ -35,8 +35,11 @@ const (
 	READY_BUTTON_HEIGHT   = 64
 	IN_GAME_BUTTON_WIDHT  = 128
 	IN_GAME_BUTTON_HEIGHT = 64
+	DISCARD_BUTTON_WIDTH  = 64
+	DISCARD_BUTTON_HEIGHT = 32
 )
 
+// CARDS
 const (
 	CARD_WIDTH        int32 = 48
 	CARD_HEIGHT       int32 = 96
@@ -77,5 +80,5 @@ var (
 	DIAMONDS_IMG = rl.LoadImage("src/window/assets/images/Diamonds.png")
 	HEARTS_IMG   = rl.LoadImage("src/window/assets/images/Hearts.png")
 	SPADES_IMG   = rl.LoadImage("src/window/assets/images/Spades.png")
-	JOKER_IMG    = rl.LoadImage("src/window/assets/images/joka.png")
+	JOKER_IMG    = rl.LoadImage("src/window/assets/images/Joker.png")
 )

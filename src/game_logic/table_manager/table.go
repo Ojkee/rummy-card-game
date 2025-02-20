@@ -1,6 +1,7 @@
 package table_manager
 
 import (
+	"errors"
 	"fmt"
 
 	"rummy-card-game/src/connection_messages"
@@ -134,4 +135,24 @@ func (table *Table) CanPlayerJoin() bool {
 func (table *Table) PlayerDrawCard(playerId int) {
 	newCard := table.DrawPile.PopBack()
 	table.Players[playerId].DrawCard(newCard)
+}
+
+func (table *Table) PlayerDiscardCard(playerId int, discardedCard *dm.Card) error {
+	before := len(table.Players[playerId].Hand)
+	resultHand := make([]*dm.Card, 0)
+	for _, card := range table.Players[playerId].Hand {
+		if *card != *discardedCard {
+			resultHand = append(resultHand, card)
+		}
+	}
+	after := len(resultHand)
+	if before == after {
+		return errors.New("No card removed")
+	}
+	table.Players[playerId].SetHand(resultHand)
+	return nil
+}
+
+func (table *Table) IsWinner(playerId int) bool {
+	return len(table.Players[playerId].Hand) == 0
 }
