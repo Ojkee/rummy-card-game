@@ -150,6 +150,7 @@ func (table *Table) PlayerDiscardCard(playerId int, discardedCard *dm.Card) erro
 		return errors.New("No card removed")
 	}
 	table.Players[playerId].SetHand(resultHand)
+	table.DiscardPile.Push(discardedCard)
 	return nil
 }
 
