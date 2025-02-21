@@ -51,17 +51,12 @@ func IsAscendingSequence(cards []*dm.Card) bool {
 	n := len(sortedCards)
 	for i < n-usedJokers {
 		card := sortedCards[i]
-		if card.Rank == dm.JOKER {
+		if card.Rank == dm.JOKER && len(cards) < 13 {
 			i++
 			continue
-		}
-		if targetRank == nil {
+		} else if targetRank == nil || (card.Suit != targetSuit && card.Suit != dm.ANY) {
 			return false
-		}
-		if card.Suit != targetSuit && card.Suit != dm.ANY {
-			return false
-		}
-		if *targetRank != card.Rank {
+		} else if *targetRank != card.Rank {
 			// Assume that jokers are at the end after sort
 			if sortedCards[n-1-usedJokers].Rank == dm.JOKER {
 				targetRank = nextRank(*targetRank, false)
@@ -76,16 +71,24 @@ func IsAscendingSequence(cards []*dm.Card) bool {
 	return true
 }
 
-func IsClearSequence(cards []*dm.Card) bool {
-	if len(cards) < 3 || !IsAscendingSequence(cards) {
+func IsPureSequence(cards []*dm.Card) bool {
+	cardsCopy := make([]*dm.Card, len(cards))
+	copy(cardsCopy, cards)
+	if len(cards) < 3 || !IsAscendingSequence(cardsCopy) {
 		return false
 	}
+	nonJokStrek := 0
 	for _, card := range cards {
 		if card.Rank == dm.JOKER {
-			return false
+			nonJokStrek = 0
+		} else {
+			nonJokStrek++
+		}
+		if nonJokStrek >= 3 {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func sortByRank(cards []*dm.Card) []*dm.Card {

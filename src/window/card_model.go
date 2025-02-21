@@ -8,20 +8,35 @@ import (
 
 type CardModel struct {
 	srcCard    *dm.Card
-	isSelected bool
 	rect       rl.Rectangle
+	isSelected bool
+	sequenceId int
 }
 
 func NewCardModel(card *dm.Card, rect rl.Rectangle) *CardModel {
 	return &CardModel{
 		srcCard:    card,
-		isSelected: false,
 		rect:       rect,
+		isSelected: false,
+		sequenceId: -1,
 	}
 }
 
 func (card *CardModel) SetSrcCard(srcCard *dm.Card) {
 	card.srcCard = srcCard
+}
+
+func (card *CardModel) SetSequenceId(sequenceId int) {
+	card.sequenceId = sequenceId
+}
+
+func (card *CardModel) Reset() {
+	card.isSelected = false
+	card.sequenceId = -1
+}
+
+func (card *CardModel) IsSelectedSequence() bool {
+	return card.sequenceId == -1
 }
 
 func (card *CardModel) Draw() {
@@ -35,6 +50,9 @@ func (card *CardModel) Draw() {
 	}
 	card.drawSuitTexture(selectedOffset)
 	card.drawRank(selectedOffset)
+	if card.sequenceId != -1 {
+		card.drawLockSequence(selectedOffset)
+	}
 }
 
 func (card *CardModel) drawFrame(selectedOffset float32) {
@@ -86,6 +104,16 @@ func (card *CardModel) drawRank(selectedOffset float32) {
 		float32(FONT_SIZE),
 		FONT_SPACING,
 		COLOR_BEIGE,
+	)
+}
+
+func (card *CardModel) drawLockSequence(selectedOffset float32) {
+	rl.DrawRectangle(
+		card.rect.ToInt32().X,
+		card.rect.ToInt32().Y+int32(selectedOffset),
+		card.rect.ToInt32().Width,
+		4,
+		LOCK_COLORS[card.sequenceId],
 	)
 }
 

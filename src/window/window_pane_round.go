@@ -13,21 +13,39 @@ func (window *Window) inRoundManager(mousePos *rl.Vector2) {
 	}
 	window.handleCardClicked(mousePos)
 	window.handleDiscardButton(mousePos)
+
+	window.handleLockSequence(mousePos)
+	window.handleInitialMeldButton(mousePos)
+}
+
+func (window *Window) drawInRound() {
+	for _, playerCard := range window.playerCards {
+		playerCard.Draw()
+	}
+	window.lastDiscardedCard.Draw()
+	window.drawPile.Draw()
+	window.drawDisplayText()
+	window.drawTurnInfo()
+	if card := window.getCardIfOneSelected(); card != nil {
+		window.updateDiscardButtonPos()
+		window.drawStaticButton(&window.discardButton)
+	}
+	if selectedCards := window.getSelectedUnlockedCards(); len(selectedCards) >= 3 {
+		window.drawStaticButton(&window.lockSetButton)
+	}
+	if window.numLockedSequences() > 0 {
+		window.drawStaticButton(&window.initialMeldButton)
+	}
 }
 
 func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
 	for i := range window.playerCards {
 		if window.playerCards[i].IsClicked(*mousePos) {
 			window.playerCards[i].isSelected = !window.playerCards[i].isSelected
+			if window.playerCards[i].sequenceId != -1 {
+				window.unlockAllById(window.playerCards[i].sequenceId)
+			}
 		}
-	}
-}
-
-func (window *Window) handleDiscardButton(mousePos *rl.Vector2) {
-	if card := window.getCardIfOneSelected(); card != nil &&
-		window.discardButton.isClicked(mousePos) {
-		discardAction := connection_messages.NewActionDiscardMessage(window.clientId, card.srcCard)
-		window.sendActionCallback(discardAction)
 	}
 }
 
@@ -46,16 +64,16 @@ func (window *Window) getCardIfOneSelected() *CardModel {
 	return &window.playerCards[selectedIdx]
 }
 
-func (window *Window) drawInRound() {
-	for _, playerCard := range window.playerCards {
-		playerCard.Draw()
-	}
-	window.lastDiscardedCard.Draw()
-	window.drawPile.Draw()
-	window.drawDisplayText()
-	window.drawTurnInfo()
-	if card := window.getCardIfOneSelected(); card != nil {
-		window.drawDiscardButton()
+func (window *Window) drawTurnInfo() {
+	if window.currentTurnId == window.clientId {
+		rl.DrawTextEx(
+			FONT,
+			"Your turn",
+			rl.NewVector2(10, 10),
+			float32(FONT_SIZE),
+			FONT_SPACING,
+			COLOR_BEIGE,
+		)
 	}
 }
 
@@ -71,45 +89,4 @@ func (window *Window) drawDisplayText() {
 		)
 		window.displayTime -= rl.GetFrameTime()
 	}
-}
-
-func (window *Window) drawTurnInfo() {
-	if window.currentTurnId == window.clientId {
-		rl.DrawTextEx(
-			FONT,
-			"Your turn",
-			rl.NewVector2(10, 10),
-			float32(FONT_SIZE),
-			FONT_SPACING,
-			COLOR_BEIGE,
-		)
-	}
-}
-
-func (window *Window) drawDiscardButton() {
-	var rectOuter rl.Rectangle
-	for _, card := range window.playerCards {
-		if card.isSelected {
-			rectOuter.X = card.rect.X - float32(DISCARD_BUTTON_WIDTH-CARD_WIDTH)/2
-			rectOuter.Y = card.rect.Y - DISCARD_BUTTON_HEIGHT - 24
-		}
-	}
-	rectOuter.Width = DISCARD_BUTTON_WIDTH
-	rectOuter.Height = DISCARD_BUTTON_HEIGHT
-	rectInner := rectOuter
-	rectInner.X += 2
-	rectInner.Y += 2
-	rectInner.Width -= 4
-	rectInner.Height -= 4
-	rl.DrawRectangleRounded(rectOuter, 0.5, 10, COLOR_BEIGE)
-	rl.DrawRectangleRounded(rectInner, 0.5, 10, COLOR_DARK_GRAY)
-	rl.DrawTextEx(
-		FONT,
-		window.discardButton.content,
-		rl.NewVector2(rectOuter.X+4, rectOuter.Y+2),
-		float32(FONT_SIZE),
-		FONT_SPACING,
-		COLOR_BEIGE,
-	)
-	window.discardButton.UpdateRect(&rectOuter)
 }

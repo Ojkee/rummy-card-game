@@ -17,9 +17,13 @@ type Window struct {
 	onReadyCallback    func(bool)
 	sendActionCallback func(cm.ActionMessage)
 
+	readyButton       FuncButton
+	discardButton     FuncButton
+	lockSetButton     FuncButton
+	initialMeldButton FuncButton
+
 	running     bool
 	stopChannel chan struct{}
-	readyButton FuncButton
 	isReady     bool
 	gameState   game_manager.GAME_STATE
 
@@ -32,15 +36,17 @@ type Window struct {
 	displayText string
 	displayTime float32
 
-	discardButton FuncButton
+	lockedSequencesIds map[int]bool
 }
 
 func NewWindow() *Window {
+	_lockedSequencesIds := make(map[int]bool)
+	for i := range MAX_LOCKS {
+		_lockedSequencesIds[i] = false
+	}
 	return &Window{
 		mu: sync.Mutex{},
 
-		running:     true,
-		stopChannel: make(chan struct{}),
 		readyButton: *NewFuncButton(
 			rl.NewRectangle(
 				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
@@ -50,8 +56,33 @@ func NewWindow() *Window {
 			),
 			"Not ready",
 		),
-		isReady:   false,
-		gameState: game_manager.PRE_START,
+		discardButton: *NewFuncButton(
+			rl.NewRectangle(0, 0, DISCARD_BUTTON_WIDTH, DISCARD_BUTTON_HEIGHT),
+			"Discard",
+		),
+		lockSetButton: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-LOCK_SEQUENCE_BUTTON_WIDTH)/2,
+				float32(WINDOW_HEIGHT-CARD_HEIGHT)-LOCK_SEQUENCE_BUTTON_HEIGHT-24,
+				LOCK_SEQUENCE_BUTTON_WIDTH,
+				LOCK_SEQUENCE_BUTTON_HEIGHT,
+			),
+			"Lock",
+		),
+		initialMeldButton: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-LOCK_SEQUENCE_BUTTON_WIDTH)/2,
+				float32(WINDOW_HEIGHT-CARD_HEIGHT)-2*LOCK_SEQUENCE_BUTTON_HEIGHT-28,
+				LOCK_SEQUENCE_BUTTON_WIDTH,
+				LOCK_SEQUENCE_BUTTON_HEIGHT,
+			),
+			"Meld",
+		),
+
+		running:     true,
+		stopChannel: make(chan struct{}),
+		isReady:     false,
+		gameState:   game_manager.PRE_START,
 
 		currentTurnId:     -1,
 		playerCards:       make([]CardModel, 0),
@@ -59,10 +90,7 @@ func NewWindow() *Window {
 		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS),
 		drawPile:          NewDrawPileButton(),
 
-		discardButton: *NewFuncButton(
-			rl.NewRectangle(0, 0, 50, 50),
-			"Discard",
-		),
+		lockedSequencesIds: _lockedSequencesIds,
 	}
 }
 
@@ -199,4 +227,27 @@ func (window *Window) updatePlayerHand(hand []*dm.Card) {
 
 func (window *Window) updateLastDiscardedCard(card *dm.Card) {
 	window.lastDiscardedCard = NewCardModel(card, DISCARD_PILE_POS)
+}
+
+func (window *Window) drawStaticButton(fbutton *FuncButton) {
+	rectInner := fbutton.rect
+	rectInner.X += 2
+	rectInner.Y += 2
+	rectInner.Width -= 4
+	rectInner.Height -= 4
+	rl.DrawRectangleRounded(fbutton.rect, 0.5, 10, COLOR_BEIGE)
+	rl.DrawRectangleRounded(rectInner, 0.5, 10, COLOR_DARK_GRAY)
+
+	contentSize := GetTextVec(fbutton.content)
+	rl.DrawTextEx(
+		FONT,
+		fbutton.content,
+		rl.NewVector2(
+			fbutton.rect.X+(fbutton.rect.Width-contentSize.X)/2,
+			fbutton.rect.Y+(fbutton.rect.Height-contentSize.Y)/2,
+		),
+		float32(FONT_SIZE),
+		FONT_SPACING,
+		COLOR_BEIGE,
+	)
 }

@@ -31,6 +31,14 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 			actionDiscardMessage.Card,
 		)
 		return err
+	case cm.INITIAL_MELD:
+		var actionInitialMeldMessage cm.ActionInitialMeldMessage
+		json.Unmarshal(actionMsg, &actionInitialMeldMessage)
+		err := server.handleClientInitialMeld(
+			actionInitialMeldMessage.ClientId,
+			actionInitialMeldMessage.Sequences,
+		)
+		return err
 	case cm.UNSUPPORTED:
 	default:
 		return errors.New("Unsupported/Unimplemented Player Action")
@@ -94,6 +102,27 @@ func (server *Server) sendWindowMessage(clientId int, textMsg string) error {
 		return err
 	}
 	server.clients[clientId].conn.WriteMessage(websocket.TextMessage, msg)
+	return nil
+}
 
+func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Card) error {
+	isPurePresent := false
+	for _, sequence := range sequences {
+		if !gm.AreBuildingSequence(sequence) {
+			err := server.sendWindowMessage(
+				clientId,
+				"At least one combination doesn't make sequence",
+			)
+			return err
+		}
+		if gm.IsPureSequence(sequence) {
+			isPurePresent = true
+		}
+	}
+	if !isPurePresent {
+		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
+		return err
+	}
+	// TODO: handle propper init meld
 	return nil
 }
