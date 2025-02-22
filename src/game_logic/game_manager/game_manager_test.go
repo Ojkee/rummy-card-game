@@ -344,3 +344,51 @@ func TestIsPureSequence(t *testing.T) {
 		}
 	}
 }
+
+func TestPointsCounter(t *testing.T) {
+	tests := []struct {
+		sequence []*dm.Card
+		expected int
+	}{
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.DIAMONDS, dm.TWO),
+				dm.NewCard(dm.DIAMONDS, dm.THREE),
+				dm.NewCard(dm.DIAMONDS, dm.FOUR),
+			},
+			9,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.DIAMONDS, dm.ACE),
+				dm.NewCard(dm.DIAMONDS, dm.ACE),
+				dm.NewCard(dm.DIAMONDS, dm.ACE),
+			},
+			33,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.DIAMONDS, dm.JACK),
+				dm.NewCard(dm.DIAMONDS, dm.QUEEN),
+				dm.NewCard(dm.ANY, dm.JOKER),
+				dm.NewCard(dm.DIAMONDS, dm.ACE),
+			},
+			31,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.ANY, dm.JOKER),
+				dm.NewCard(dm.ANY, dm.JOKER),
+				dm.NewCard(dm.ANY, dm.JOKER),
+			},
+			0,
+		},
+	}
+
+	for i, test := range tests {
+		result := gm.SequencePoints(test.sequence)
+		if result != test.expected {
+			t.Errorf("Error in test %d: got %v; want: %v", i, result, test.expected)
+		}
+	}
+}

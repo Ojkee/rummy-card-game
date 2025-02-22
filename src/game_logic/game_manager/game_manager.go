@@ -14,6 +14,8 @@ const (
 	FINISHED
 )
 
+const MIN_POINTS_TO_MELD = 51
+
 func AreBuildingSequence(cards []*dm.Card) bool {
 	if len(cards) < 3 {
 		return false
@@ -107,4 +109,12 @@ func nextRank(rank dm.Rank, isFirst bool) *dm.Rank {
 	}
 	next, _ := dm.RankOfInt(int(rank + 1))
 	return &next
+}
+
+func SequencePoints(cards []*dm.Card) int {
+	sumPoints := 0
+	for _, card := range cards {
+		sumPoints += card.Rank.Points()
+	}
+	return sumPoints
 }

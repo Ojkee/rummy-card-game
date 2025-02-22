@@ -82,6 +82,17 @@ func (r Rank) String() string {
 	return ranks[r]
 }
 
+func (r Rank) Points() int {
+	points := []int{
+		2, 3, 4,
+		5, 6, 7,
+		8, 9, 10,
+		10, 10, 10,
+		11, 0,
+	}
+	return points[r]
+}
+
 type Card struct {
 	Suit Suit `json:"suit"`
 	Rank Rank `json:"rand"`

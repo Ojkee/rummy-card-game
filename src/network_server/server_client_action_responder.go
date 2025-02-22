@@ -107,6 +107,7 @@ func (server *Server) sendWindowMessage(clientId int, textMsg string) error {
 
 func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Card) error {
 	isPurePresent := false
+	sumPoints := 0
 	for _, sequence := range sequences {
 		if !gm.AreBuildingSequence(sequence) {
 			err := server.sendWindowMessage(
@@ -118,11 +119,13 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 		if gm.IsPureSequence(sequence) {
 			isPurePresent = true
 		}
+		sumPoints += gm.SequencePoints(sequence)
 	}
-	if !isPurePresent {
+	if !isPurePresent || sumPoints < gm.MIN_POINTS_TO_MELD {
 		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
 		return err
 	}
-	// TODO: handle propper init meld
+
+	server.clients[clientId].hasMelded = true
 	return nil
 }

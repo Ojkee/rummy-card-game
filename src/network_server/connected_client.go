@@ -8,6 +8,7 @@ type ConnectedClient struct {
 
 	// in round
 	drawnCard bool
+	hasMelded bool
 }
 
 func NewConnectedClient(conn *websocket.Conn) *ConnectedClient {
