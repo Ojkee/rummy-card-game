@@ -22,7 +22,10 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 		return err
 	}
 
-	if actionType != cm.DRAW_CARD && !server.clients[clientId].drawnCard {
+	if actionType != cm.REARRANGE_CARDS &&
+		actionType != cm.DRAW_CARD &&
+		!server.clients[clientId].drawnCard {
+
 		server.sendWindowMessage(clientId, "You need to draw card first")
 		return nil
 	}
@@ -31,7 +34,10 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 	case cm.DRAW_CARD:
 		var actionDrawMessage cm.ActionDrawMessage
 		json.Unmarshal(actionMsg, &actionDrawMessage)
-		err := server.handleClientDrawCard(actionDrawMessage.ClientId)
+		err := server.handleClientDrawCard(
+			actionDrawMessage.ClientId,
+			actionDrawMessage.DrawSource,
+		)
 		return err
 	case cm.DISCARD_CARD:
 		var actionDiscardMessage cm.ActionDiscardMessage
@@ -84,12 +90,23 @@ func (server *Server) DecodeClientId(actionMsg []byte) (int, error) {
 	return baseMsg.ClientId, nil
 }
 
-func (server *Server) handleClientDrawCard(clientId int) error {
+func (server *Server) handleClientDrawCard(clientId int, drawSource cm.DRAW_TYPE) error {
 	if server.clients[clientId].drawnCard {
 		err := server.sendWindowMessage(clientId, "You've drawn a card already!")
 		return err
 	}
-	server.table.PlayerDrawCard(clientId)
+	if drawSource == cm.DRAW_FROM_PILE {
+		server.table.PlayerDrawCard(clientId)
+		server.clients[clientId].drawnCard = true
+		server.SendStateViewAll()
+		return nil
+	}
+	if !server.clients[clientId].hasMelded {
+		err := server.sendWindowMessage(clientId, "You need to meld first")
+		return err
+	}
+
+	server.table.PlayerDrawCardFromDiscard(clientId)
 	server.clients[clientId].drawnCard = true
 	server.SendStateViewAll()
 	return nil
@@ -118,6 +135,7 @@ func (server *Server) handleClientDiscardCard(clientId int, card *dm.Card) error
 		return nil
 	}
 
+	server.clients[clientId].drawnCard = false
 	server.table.NextTurn()
 	server.SendStateViewAll()
 	return nil

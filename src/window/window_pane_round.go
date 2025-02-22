@@ -3,12 +3,22 @@ package window
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	"rummy-card-game/src/connection_messages"
+	cm "rummy-card-game/src/connection_messages"
 )
 
 func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 	if window.drawPile.InRect(mousePos) {
-		actionMsg := connection_messages.NewActionDrawMessage(window.clientId)
+		actionMsg := cm.NewActionDrawMessage(
+			window.clientId,
+			cm.DRAW_FROM_PILE,
+		)
+		window.sendActionCallback(actionMsg)
+	} else if window.lastDiscardedCard != nil &&
+		window.lastDiscardedCard.InRect(*mousePos) {
+		actionMsg := cm.NewActionDrawMessage(
+			window.clientId,
+			cm.DRAW_FROM_DISCARD_PILE,
+		)
 		window.sendActionCallback(actionMsg)
 	}
 	window.handleCardClicked(mousePos)

@@ -137,6 +137,11 @@ func (table *Table) PlayerDrawCard(playerId int) {
 	table.Players[playerId].DrawCard(newCard)
 }
 
+func (table *Table) PlayerDrawCardFromDiscard(playerId int) {
+	newCard := table.DiscardPile.PopBack()
+	table.Players[playerId].DrawCard(newCard)
+}
+
 func (table *Table) PlayerDiscardCard(playerId int, discardedCard *dm.Card) error {
 	before := len(table.Players[playerId].Hand)
 	resultHand := make([]*dm.Card, 0)

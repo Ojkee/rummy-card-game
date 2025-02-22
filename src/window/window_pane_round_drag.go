@@ -31,6 +31,8 @@ func (window *Window) rearrangeNewCardPosX() {
 	newIdx := window.getReleaseDragCardIdx()
 	oldIdx := window.currentDragCardIdx
 	if newIdx == oldIdx {
+		cards := window.cardModelsToCards()
+		window.updatePlayerHand(cards)
 		return
 	}
 	window.insertDragCardNewIdx(newIdx, oldIdx)
