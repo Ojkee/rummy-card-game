@@ -149,5 +149,6 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 }
 
 func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error {
+	server.table.Players[clientId].SetHand(cards)
 	return nil
 }
