@@ -117,6 +117,6 @@ func (card *CardModel) drawLockSequence(selectedOffset float32) {
 	)
 }
 
-func (card *CardModel) IsClicked(mousePos rl.Vector2) bool {
+func (card *CardModel) InRect(mousePos rl.Vector2) bool {
 	return rl.CheckCollisionPointRec(mousePos, card.rect)
 }

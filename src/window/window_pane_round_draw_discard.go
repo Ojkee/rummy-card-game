@@ -8,7 +8,7 @@ import (
 
 func (window *Window) handleDiscardButton(mousePos *rl.Vector2) {
 	if card := window.getCardIfOneSelected(); card != nil &&
-		window.discardButton.isClicked(mousePos) {
+		window.discardButton.InRect(mousePos) {
 		discardAction := cm.NewActionDiscardMessage(window.clientId, card.srcCard)
 		window.sendActionCallback(discardAction)
 	}

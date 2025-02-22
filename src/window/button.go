@@ -16,7 +16,7 @@ func NewFuncButton(rect rl.Rectangle, content string) *FuncButton {
 	}
 }
 
-func (fb *FuncButton) isClicked(mousePos *rl.Vector2) bool {
+func (fb *FuncButton) InRect(mousePos *rl.Vector2) bool {
 	return rl.CheckCollisionPointRec(*mousePos, fb.rect)
 }
 

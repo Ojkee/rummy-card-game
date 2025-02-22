@@ -12,7 +12,7 @@ func NewDrawPileButton() *DrawPileButton {
 	}
 }
 
-func (drawPile *DrawPileButton) IsClicked(mousePos *rl.Vector2) bool {
+func (drawPile *DrawPileButton) InRect(mousePos *rl.Vector2) bool {
 	return rl.CheckCollisionPointRec(*mousePos, drawPile.rect)
 }
 

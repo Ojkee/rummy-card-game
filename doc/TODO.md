@@ -9,6 +9,7 @@
 - [ ] Drawing card from discard pile
 - [ ] Replacing joker with propper card
 - [ ] Adding cards to existing sequences
+- [ ] Handling reshuffle when draw pile gets empty
 
 - [ ] AI Bots
 - [ ] Other players number of cards should be visible

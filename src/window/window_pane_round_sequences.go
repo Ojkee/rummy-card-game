@@ -9,7 +9,7 @@ import (
 
 func (window *Window) handleLockSequence(mousePos *rl.Vector2) {
 	if selectedCards := window.getSelectedUnlockedCards(); len(selectedCards) >= 3 {
-		if window.lockSetButton.isClicked(mousePos) {
+		if window.lockSetButton.InRect(mousePos) {
 			window.lockSelectedSequence()
 		}
 	}
@@ -81,7 +81,7 @@ func (window *Window) collectLockedSequencesCards() [][]*dm.Card {
 
 func (window *Window) handleInitialMeldButton(mousePos *rl.Vector2) {
 	if window.numLockedSequences() > 0 &&
-		window.initialMeldButton.isClicked(mousePos) {
+		window.initialMeldButton.InRect(mousePos) {
 		lockedSequences := window.collectLockedSequencesCards()
 		lockedSequencesMessage := cm.NewActionInitialMeldMessage(window.clientId, lockedSequences)
 		window.sendActionCallback(lockedSequencesMessage)

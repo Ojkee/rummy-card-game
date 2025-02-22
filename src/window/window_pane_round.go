@@ -6,8 +6,8 @@ import (
 	"rummy-card-game/src/connection_messages"
 )
 
-func (window *Window) inRoundManager(mousePos *rl.Vector2) {
-	if window.drawPile.IsClicked(mousePos) {
+func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
+	if window.drawPile.InRect(mousePos) {
 		actionMsg := connection_messages.NewActionDrawMessage(window.clientId)
 		window.sendActionCallback(actionMsg)
 	}
@@ -40,7 +40,7 @@ func (window *Window) drawInRound() {
 
 func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
 	for i := range window.playerCards {
-		if window.playerCards[i].IsClicked(*mousePos) {
+		if window.playerCards[i].InRect(*mousePos) {
 			window.playerCards[i].isSelected = !window.playerCards[i].isSelected
 			if window.playerCards[i].sequenceId != -1 {
 				window.unlockAllById(window.playerCards[i].sequenceId)

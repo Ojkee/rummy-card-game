@@ -109,6 +109,7 @@ func (server *Server) sendWindowMessage(clientId int, textMsg string) error {
 func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Card) error {
 	isPurePresent := false
 	sumPoints := 0
+	numCards := 0
 	for _, sequence := range sequences {
 		if !gm.AreBuildingSequence(sequence) {
 			err := server.sendWindowMessage(
@@ -121,6 +122,7 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 			isPurePresent = true
 		}
 		sumPoints += gm.SequencePoints(sequence)
+		numCards += len(sequence)
 	}
 	if !isPurePresent {
 		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
@@ -128,6 +130,9 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 	} else if sumPoints < gm.MIN_POINTS_TO_MELD {
 		errMsg := fmt.Sprintf("You need at least %d points", gm.MIN_POINTS_TO_MELD)
 		err := server.sendWindowMessage(clientId, errMsg)
+		return err
+	} else if numCards == len(server.table.Players[clientId].Hand) {
+		err := server.sendWindowMessage(clientId, "You need to place last card to discard pile")
 		return err
 	}
 	// TODO: Handle sequences

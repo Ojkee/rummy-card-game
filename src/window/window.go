@@ -27,6 +27,9 @@ type Window struct {
 	isReady     bool
 	gameState   game_manager.GAME_STATE
 
+	isDragging   bool
+	startDragPos rl.Vector2
+
 	currentTurnId     int
 	playerCards       []CardModel
 	discardPile       *dm.CardQueue
@@ -81,6 +84,7 @@ func NewWindow() *Window {
 
 		running:     true,
 		stopChannel: make(chan struct{}),
+		isDragging:  false,
 		isReady:     false,
 		gameState:   game_manager.PRE_START,
 
@@ -112,24 +116,31 @@ func (window *Window) checkEvent() {
 	if rl.IsKeyPressed(rl.KeyQ) {
 		window.Stop()
 	}
+
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		switch window.gameState {
-		case game_manager.PRE_START:
-			if window.readyButton.isClicked(&mousePos) {
-				window.toggleReady()
-			}
-		case game_manager.IN_GAME:
-			window.inRoundManager(&mousePos)
-		default:
-			break
+		window.startDragPos = mousePos
+		window.isDragging = false
+	}
+	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+		if !window.isDragging && rl.Vector2Distance(window.startDragPos, mousePos) > 10 {
+			window.isDragging = true
 		}
+		if window.isDragging {
+			window.handleMouseDrag(&mousePos)
+		}
+	}
+
+	if rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
+		if !window.isDragging {
+			window.handleMouseClicked(&mousePos)
+		}
+		window.isDragging = false
 	}
 }
 
 func (window *Window) draw() {
 	rl.BeginDrawing()
-
 	rl.ClearBackground(COLOR_DARK_GRAY)
 
 	switch window.gameState {
@@ -140,6 +151,7 @@ func (window *Window) draw() {
 		window.drawInRound()
 		break
 	}
+
 	rl.EndDrawing()
 }
 
@@ -250,4 +262,26 @@ func (window *Window) drawStaticButton(fbutton *FuncButton) {
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)
+}
+
+func (window *Window) handleMouseClicked(mousePos *rl.Vector2) {
+	switch window.gameState {
+	case game_manager.PRE_START:
+		if window.readyButton.InRect(mousePos) {
+			window.toggleReady()
+		}
+	case game_manager.IN_GAME:
+		window.inRoundManagerClick(mousePos)
+	default:
+		break
+	}
+}
+
+func (window *Window) handleMouseDrag(mousePos *rl.Vector2) {
+	switch window.gameState {
+	case game_manager.IN_GAME:
+		window.inRoundManagerDrag(mousePos)
+	default:
+		break
+	}
 }
