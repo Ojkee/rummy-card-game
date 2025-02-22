@@ -27,8 +27,9 @@ type Window struct {
 	isReady     bool
 	gameState   game_manager.GAME_STATE
 
-	isDragging   bool
-	startDragPos rl.Vector2
+	isDragging         bool
+	startDragPos       rl.Vector2
+	currentDragCardIdx int
 
 	currentTurnId     int
 	playerCards       []CardModel
@@ -84,9 +85,11 @@ func NewWindow() *Window {
 
 		running:     true,
 		stopChannel: make(chan struct{}),
-		isDragging:  false,
 		isReady:     false,
 		gameState:   game_manager.PRE_START,
+
+		isDragging:         false,
+		currentDragCardIdx: -1,
 
 		currentTurnId:     -1,
 		playerCards:       make([]CardModel, 0),
@@ -123,7 +126,7 @@ func (window *Window) checkEvent() {
 		window.isDragging = false
 	}
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		if !window.isDragging && rl.Vector2Distance(window.startDragPos, mousePos) > 10 {
+		if !window.isDragging && rl.Vector2Distance(window.startDragPos, mousePos) > 5 {
 			window.isDragging = true
 		}
 		if window.isDragging {
@@ -136,6 +139,8 @@ func (window *Window) checkEvent() {
 			window.handleMouseClicked(&mousePos)
 		}
 		window.isDragging = false
+		window.rearrangeNewCardPosX()
+		window.currentDragCardIdx = -1
 	}
 }
 

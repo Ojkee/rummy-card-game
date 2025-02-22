@@ -19,8 +19,13 @@ func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 }
 
 func (window *Window) drawInRound() {
-	for _, playerCard := range window.playerCards {
-		playerCard.Draw()
+	for i, playerCard := range window.playerCards {
+		if i != window.currentDragCardIdx {
+			playerCard.Draw()
+		}
+	}
+	if window.currentDragCardIdx != -1 {
+		window.playerCards[window.currentDragCardIdx].Draw()
 	}
 	window.lastDiscardedCard.Draw()
 	window.drawPile.Draw()

@@ -40,6 +40,14 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 			actionInitialMeldMessage.Sequences,
 		)
 		return err
+	case cm.REARRANGE_CARDS:
+		var actionRearrangeCardsMessage cm.ActionRearrangeCardsMessage
+		json.Unmarshal(actionMsg, &actionRearrangeCardsMessage)
+		err := server.handleRearrangeCards(
+			actionRearrangeCardsMessage.ClientId,
+			actionRearrangeCardsMessage.Cards,
+		)
+		return err
 	case cm.UNSUPPORTED:
 	default:
 		return errors.New("Unsupported/Unimplemented Player Action")
@@ -137,5 +145,9 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 	}
 	// TODO: Handle sequences
 	server.clients[clientId].hasMelded = true
+	return nil
+}
+
+func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error {
 	return nil
 }

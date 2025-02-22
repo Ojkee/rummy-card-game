@@ -39,6 +39,10 @@ func (card *CardModel) IsSelectedSequence() bool {
 	return card.sequenceId == -1
 }
 
+func (card *CardModel) MoveX(x float32) {
+	card.rect.X = x
+}
+
 func (card *CardModel) Draw() {
 	var selectedOffset float32 = 0
 	if card.isSelected {
