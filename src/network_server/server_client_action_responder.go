@@ -17,6 +17,15 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 	if err != nil {
 		return err
 	}
+	clientId, err := server.DecodeClientId(actionMsg)
+	if err != nil {
+		return err
+	}
+
+	if actionType != cm.DRAW_CARD && !server.clients[clientId].drawnCard {
+		server.sendWindowMessage(clientId, "You need to draw card first")
+		return nil
+	}
 
 	switch actionType {
 	case cm.DRAW_CARD:
@@ -63,6 +72,16 @@ func (server *Server) DecodeActionType(actionMsg []byte) (cm.ACTION_TYPE, error)
 		return cm.UNSUPPORTED, err
 	}
 	return baseMsg.ActionType, nil
+}
+
+func (server *Server) DecodeClientId(actionMsg []byte) (int, error) {
+	var baseMsg struct {
+		ClientId int `json:"client_id"`
+	}
+	if err := json.Unmarshal(actionMsg, &baseMsg); err != nil {
+		return -1, err
+	}
+	return baseMsg.ClientId, nil
 }
 
 func (server *Server) handleClientDrawCard(clientId int) error {

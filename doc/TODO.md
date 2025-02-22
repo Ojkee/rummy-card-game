@@ -3,7 +3,7 @@
 ## Features
 ### Important
 - [ ] Placing sequences on the screen
-- [ ] Propper turn handling (draw -> action -> discard)
+- [x] Propper turn handling (draw -> action -> discard)
 - [x] Player should be able to rearange cards
 - [x] Initial meld (51 points and at least one pure sequence)
 - [ ] Drawing card from discard pile
