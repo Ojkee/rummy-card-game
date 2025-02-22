@@ -3,6 +3,7 @@ package network_server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/gorilla/websocket"
 
@@ -121,11 +122,15 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 		}
 		sumPoints += gm.SequencePoints(sequence)
 	}
-	if !isPurePresent || sumPoints < gm.MIN_POINTS_TO_MELD {
+	if !isPurePresent {
 		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
 		return err
+	} else if sumPoints < gm.MIN_POINTS_TO_MELD {
+		errMsg := fmt.Sprintf("You need at least %d points", gm.MIN_POINTS_TO_MELD)
+		err := server.sendWindowMessage(clientId, errMsg)
+		return err
 	}
-
+	// TODO: Handle sequences
 	server.clients[clientId].hasMelded = true
 	return nil
 }

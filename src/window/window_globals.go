@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	WINDOW_WIDTH  int32 = 800
+	WINDOW_WIDTH  int32 = 1200
 	WINDOW_HEIGHT int32 = 800
 )
 
