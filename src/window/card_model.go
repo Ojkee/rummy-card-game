@@ -9,16 +9,34 @@ import (
 type CardModel struct {
 	srcCard    *dm.Card
 	rect       rl.Rectangle
+	innerRect  rl.Rectangle
 	isSelected bool
 	sequenceId int
+	isSmall    bool
 }
 
-func NewCardModel(card *dm.Card, rect rl.Rectangle) *CardModel {
+func NewCardModel(card *dm.Card, rect rl.Rectangle, isSmall bool) *CardModel {
+	gap := float32(CARD_GAP)
+	innerWidth := float32(CARD_INNER_WIDTH)
+	innerHeight := float32(CARD_INNER_HEIGHT)
+	if isSmall {
+		gap /= 2
+		innerWidth = SEQUENCE_INNER_CARD_WIDTH
+		innerHeight = SEQUENCE_INNER_CARD_HEIGHT
+	}
+	_innerRect := rl.NewRectangle(
+		rect.X+gap,
+		rect.Y+gap,
+		innerWidth,
+		innerHeight,
+	)
 	return &CardModel{
 		srcCard:    card,
 		rect:       rect,
+		innerRect:  _innerRect,
 		isSelected: false,
 		sequenceId: -1,
+		isSmall:    isSmall,
 	}
 }
 
@@ -74,10 +92,10 @@ func (card *CardModel) drawFrame(selectedOffset float32) {
 	}
 	rl.DrawRectangleRec(
 		rl.NewRectangle(
-			card.rect.X+float32(CARD_GAP),
-			float32(card.rect.ToInt32().Y+CARD_GAP)+selectedOffset,
-			float32(CARD_INNER_WIDTH),
-			float32(CARD_INNER_HEIGHT),
+			card.innerRect.X,
+			card.innerRect.Y+selectedOffset,
+			card.innerRect.Width,
+			card.innerRect.Height,
 		),
 		innerColor,
 	)
@@ -86,9 +104,16 @@ func (card *CardModel) drawFrame(selectedOffset float32) {
 func (card *CardModel) drawSuitTexture(selectedOffset float32) {
 	var rotation float32 = 0
 	var scale float32 = 1
+	img := RANK_IMGS[card.srcCard.Suit]
+	if card.isSmall {
+		img = RANK_IMGS_SMALL[card.srcCard.Suit]
+	}
 	rl.DrawTextureEx(
-		RANK_IMGS[card.srcCard.Suit],
-		rl.NewVector2(card.rect.X+float32(CARD_GAP), card.rect.Y+float32(CARD_GAP)+selectedOffset),
+		img,
+		rl.NewVector2(
+			card.rect.X+float32(CARD_GAP),
+			card.rect.Y+float32(CARD_GAP)+selectedOffset,
+		),
 		rotation,
 		scale,
 		COLOR_DARK_GRAY,
@@ -96,14 +121,14 @@ func (card *CardModel) drawSuitTexture(selectedOffset float32) {
 }
 
 func (card *CardModel) drawRank(selectedOffset float32) {
-	randString := card.srcCard.Rank.String()
-	textVec := GetTextVec(randString)
+	rankString := card.srcCard.Rank.String()
+	textVec := GetTextVec(rankString)
 	rl.DrawTextEx(
 		FONT,
-		randString,
+		rankString,
 		rl.NewVector2(
-			card.rect.X+float32(SUIT_WIDTH-int32(textVec.X))/2,
-			card.rect.Y+float32(SUIT_HEIGHT*3/2)+selectedOffset,
+			card.rect.X+(card.rect.Width-textVec.X)/2,
+			card.rect.Y+(card.rect.Height-textVec.Y)+selectedOffset,
 		),
 		float32(FONT_SIZE),
 		FONT_SPACING,

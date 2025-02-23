@@ -30,10 +30,14 @@ func (drawPile *DrawPileButton) Draw() {
 		),
 		COLOR_TAUPE,
 	)
+	drawTextSize := GetTextVec("Draw")
 	rl.DrawTextEx(
 		FONT,
 		"Draw",
-		rl.NewVector2(drawPile.rect.X, drawPile.rect.Y),
+		rl.NewVector2(
+			drawPile.rect.X+(drawPile.rect.Width-drawTextSize.X)/2,
+			drawPile.rect.Y-drawTextSize.Y,
+		),
 		float32(FONT_SIZE),
 		FONT_SPACING,
 		COLOR_BEIGE,

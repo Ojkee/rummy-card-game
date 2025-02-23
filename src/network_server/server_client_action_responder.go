@@ -157,9 +157,13 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 	numCards := 0
 	for _, sequence := range sequences {
 		if !gm.AreBuildingSequence(sequence) {
+			errMsg := fmt.Sprintf(
+				"At least one combination doesn't make sequence: %v",
+				sequence,
+			)
 			err := server.sendWindowMessage(
 				clientId,
-				"At least one combination doesn't make sequence",
+				errMsg,
 			)
 			return err
 		}
@@ -180,9 +184,13 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 		err := server.sendWindowMessage(clientId, "You need to place last card to discard pile")
 		return err
 	}
-	// TODO: Handle sequences
+	for _, sequence := range sequences {
+		server.table.AddNewSequence(sequence, gm.SEQUENCE_PURE)
+		server.table.FilterCards(clientId, sequence)
+	}
 	server.clients[clientId].hasMelded = true
-	return nil
+	err := server.SendStateViewAll()
+	return err
 }
 
 func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error {

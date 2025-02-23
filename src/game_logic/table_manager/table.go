@@ -21,6 +21,8 @@ type Table struct {
 	DiscardPile  dm.CardQueue
 	Players      map[int]*player.Player
 	playerIds    []int
+
+	sequences []gm.Sequence
 }
 
 func NewTable(minPlayers, maxPlayers int) *Table {
@@ -35,6 +37,8 @@ func NewTable(minPlayers, maxPlayers int) *Table {
 		DiscardPile:  *dm.NewCardQueue(),
 		Players:      make(map[int]*player.Player, 0),
 		playerIds:    make([]int, 0),
+
+		sequences: make([]gm.Sequence, 0),
 	}
 }
 
@@ -60,7 +64,14 @@ func (table *Table) shuffleInitDrawPile() {
 			_drawPile = append(_drawPile, &card)
 		}
 	}
-	table.DrawPile.ShuffleExtend(_drawPile)
+	if DEBUG_MODES[MELD_HAND_START] {
+		skipped := _drawPile[SKIP_MELD_HAND_CARDS:]
+		n := len(_drawPile)
+		_drawPile = append(_drawPile[:n-SKIP_MELD_HAND_CARDS], skipped...)
+		table.DrawPile.Extend(_drawPile[SKIP_MELD_HAND_CARDS:])
+	} else {
+		table.DrawPile.ShuffleExtend(_drawPile)
+	}
 }
 
 func (table *Table) dealCards() {
@@ -91,6 +102,7 @@ func (table *Table) JsonPlayerStateView(playerId int) ([]byte, error) {
 		&table.DiscardPile,
 		table.Players[playerId],
 		[]int{1},
+		table.sequences,
 	)
 	return sv.Json()
 }
@@ -145,9 +157,12 @@ func (table *Table) PlayerDrawCardFromDiscard(playerId int) {
 func (table *Table) PlayerDiscardCard(playerId int, discardedCard *dm.Card) error {
 	before := len(table.Players[playerId].Hand)
 	resultHand := make([]*dm.Card, 0)
+	discarded := false
 	for _, card := range table.Players[playerId].Hand {
-		if *card != *discardedCard {
+		if *card != *discardedCard || discarded {
 			resultHand = append(resultHand, card)
+		} else if *card == *discardedCard {
+			discarded = true
 		}
 	}
 	after := len(resultHand)
@@ -161,4 +176,27 @@ func (table *Table) PlayerDiscardCard(playerId int, discardedCard *dm.Card) erro
 
 func (table *Table) IsWinner(playerId int) bool {
 	return len(table.Players[playerId].Hand) == 0
+}
+
+func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TYPE) {
+	table.sequences = append(table.sequences, *gm.NewSequence(cards, sequenceType))
+}
+
+func (table *Table) FilterCards(playerId int, cards []*dm.Card) {
+	for _, card := range cards {
+		table.filterCard(playerId, card)
+	}
+}
+
+func (table *Table) filterCard(playerId int, filterCard *dm.Card) {
+	resultHand := make([]*dm.Card, 0)
+	discarded := false
+	for _, card := range table.Players[playerId].Hand {
+		if *card != *filterCard || discarded {
+			resultHand = append(resultHand, card)
+		} else if *card == *filterCard {
+			discarded = true
+		}
+	}
+	table.Players[playerId].SetHand(resultHand)
 }

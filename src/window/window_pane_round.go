@@ -1,8 +1,6 @@
 package window
 
 import (
-	"log"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
@@ -17,7 +15,6 @@ func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 		window.sendActionCallback(actionMsg)
 	} else if window.lastDiscardedCard.srcCard != nil &&
 		window.lastDiscardedCard.InRect(*mousePos) {
-		log.Println(window.lastDiscardedCard)
 		actionMsg := cm.NewActionDrawMessage(
 			window.clientId,
 			cm.DRAW_FROM_DISCARD_PILE,
@@ -53,6 +50,9 @@ func (window *Window) drawInRound() {
 	}
 	if window.numLockedSequences() > 0 {
 		window.drawStaticButton(&window.initialMeldButton)
+	}
+	for _, sequence := range window.tableSequences {
+		sequence.Draw()
 	}
 }
 

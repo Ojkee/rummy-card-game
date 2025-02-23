@@ -83,17 +83,37 @@ var (
 	)
 )
 
+// SEQUENCES
 const (
-	SUIT_WIDTH  int32 = CARD_INNER_WIDTH
-	SUIT_HEIGHT int32 = CARD_INNER_WIDTH
+	SEQUENCE_GAP               float32 = float32(CARD_GAP) / 2
+	SEQUENCE_CARD_WIDTH        float32 = float32(CARD_WIDTH) * 2 / 3
+	SEQUENCE_CARD_HEIGHT       float32 = float32(CARD_HEIGHT) * 2 / 3
+	SEQUENCE_INNER_CARD_WIDTH  float32 = float32(SEQUENCE_CARD_WIDTH) - SEQUENCE_GAP*2
+	SEQUENCE_INNER_CARD_HEIGHT float32 = float32(SEQUENCE_CARD_HEIGHT) - SEQUENCE_GAP*2
 )
 
-var RANK_IMGS = make(map[dm.Suit]rl.Texture2D)
+// IMGS
+const (
+	SUIT_WIDTH        int32 = CARD_INNER_WIDTH
+	SUIT_HEIGHT       int32 = CARD_INNER_WIDTH
+	SUIT_WIDTH_SMALL  int32 = int32(SEQUENCE_CARD_WIDTH)
+	SUIT_HEIGHT_SMALL int32 = int32(SEQUENCE_CARD_WIDTH)
+)
 
 var (
-	CLUBS_IMG    = rl.LoadImage("src/window/assets/images/Clubs.png")
-	DIAMONDS_IMG = rl.LoadImage("src/window/assets/images/Diamonds.png")
-	HEARTS_IMG   = rl.LoadImage("src/window/assets/images/Hearts.png")
-	SPADES_IMG   = rl.LoadImage("src/window/assets/images/Spades.png")
-	JOKER_IMG    = rl.LoadImage("src/window/assets/images/Joker.png")
+	RANK_IMGS       = make(map[dm.Suit]rl.Texture2D)
+	RANK_IMGS_SMALL = make(map[dm.Suit]rl.Texture2D)
+)
+
+var (
+	CLUBS_IMG          = rl.LoadImage("src/window/assets/images/Clubs.png")
+	DIAMONDS_IMG       = rl.LoadImage("src/window/assets/images/Diamonds.png")
+	HEARTS_IMG         = rl.LoadImage("src/window/assets/images/Hearts.png")
+	SPADES_IMG         = rl.LoadImage("src/window/assets/images/Spades.png")
+	JOKER_IMG          = rl.LoadImage("src/window/assets/images/Joker.png")
+	CLUBS_IMG_SMALL    = rl.LoadImage("src/window/assets/images/Clubs.png")
+	DIAMONDS_IMG_SMALL = rl.LoadImage("src/window/assets/images/Diamonds.png")
+	HEARTS_IMG_SMALL   = rl.LoadImage("src/window/assets/images/Hearts.png")
+	SPADES_IMG_SMALL   = rl.LoadImage("src/window/assets/images/Spades.png")
+	JOKER_IMG_SMALL    = rl.LoadImage("src/window/assets/images/Joker.png")
 )

@@ -7,7 +7,7 @@ import (
 
 	cm "rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
-	"rummy-card-game/src/game_logic/game_manager"
+	gm "rummy-card-game/src/game_logic/game_manager"
 )
 
 type Window struct {
@@ -25,7 +25,7 @@ type Window struct {
 	running     bool
 	stopChannel chan struct{}
 	isReady     bool
-	gameState   game_manager.GAME_STATE
+	gameState   gm.GAME_STATE
 
 	isDragging         bool
 	startDragPos       rl.Vector2
@@ -41,6 +41,8 @@ type Window struct {
 	displayTime float32
 
 	lockedSequencesIds map[int]bool
+
+	tableSequences []SequenceModel
 }
 
 func NewWindow() *Window {
@@ -86,7 +88,7 @@ func NewWindow() *Window {
 		running:     true,
 		stopChannel: make(chan struct{}),
 		isReady:     false,
-		gameState:   game_manager.PRE_START,
+		gameState:   gm.PRE_START,
 
 		isDragging:         false,
 		currentDragCardIdx: -1,
@@ -94,7 +96,7 @@ func NewWindow() *Window {
 		currentTurnId:     -1,
 		playerCards:       make([]CardModel, 0),
 		discardPile:       nil,
-		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS),
+		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS, false),
 		drawPile:          NewDrawPileButton(),
 
 		lockedSequencesIds: _lockedSequencesIds,
@@ -149,10 +151,10 @@ func (window *Window) draw() {
 	rl.ClearBackground(COLOR_DARK_GRAY)
 
 	switch window.gameState {
-	case game_manager.PRE_START:
+	case gm.PRE_START:
 		window.drawWaitingPane()
 		break
-	case game_manager.IN_GAME:
+	case gm.IN_GAME:
 		window.drawInRound()
 		break
 	}
@@ -161,17 +163,35 @@ func (window *Window) draw() {
 }
 
 func (window *Window) initGraphics() {
+	window.resizeImages()
+	window.loadImagesMap()
+	FONT = rl.LoadFontEx(FONT_PATH, FONT_SIZE, nil, 96)
+}
+
+func (window *Window) resizeImages() {
 	rl.ImageResize(CLUBS_IMG, SUIT_WIDTH, SUIT_HEIGHT)
 	rl.ImageResize(DIAMONDS_IMG, SUIT_WIDTH, SUIT_HEIGHT)
 	rl.ImageResize(HEARTS_IMG, SUIT_WIDTH, SUIT_HEIGHT)
 	rl.ImageResize(SPADES_IMG, SUIT_WIDTH, SUIT_HEIGHT)
 	rl.ImageResize(JOKER_IMG, SUIT_WIDTH, SUIT_HEIGHT)
+	rl.ImageResize(CLUBS_IMG_SMALL, SUIT_WIDTH_SMALL, SUIT_HEIGHT_SMALL)
+	rl.ImageResize(DIAMONDS_IMG_SMALL, SUIT_WIDTH_SMALL, SUIT_HEIGHT_SMALL)
+	rl.ImageResize(HEARTS_IMG_SMALL, SUIT_WIDTH_SMALL, SUIT_HEIGHT_SMALL)
+	rl.ImageResize(SPADES_IMG_SMALL, SUIT_WIDTH_SMALL, SUIT_HEIGHT_SMALL)
+	rl.ImageResize(JOKER_IMG_SMALL, SUIT_WIDTH_SMALL, SUIT_HEIGHT_SMALL)
+}
+
+func (window *Window) loadImagesMap() {
 	RANK_IMGS[dm.CLUBS] = rl.LoadTextureFromImage(CLUBS_IMG)
 	RANK_IMGS[dm.DIAMONDS] = rl.LoadTextureFromImage(DIAMONDS_IMG)
 	RANK_IMGS[dm.HEARTS] = rl.LoadTextureFromImage(HEARTS_IMG)
 	RANK_IMGS[dm.SPADES] = rl.LoadTextureFromImage(SPADES_IMG)
 	RANK_IMGS[dm.ANY] = rl.LoadTextureFromImage(JOKER_IMG)
-	FONT = rl.LoadFontEx(FONT_PATH, FONT_SIZE, nil, 96)
+	RANK_IMGS_SMALL[dm.CLUBS] = rl.LoadTextureFromImage(CLUBS_IMG_SMALL)
+	RANK_IMGS_SMALL[dm.DIAMONDS] = rl.LoadTextureFromImage(DIAMONDS_IMG_SMALL)
+	RANK_IMGS_SMALL[dm.HEARTS] = rl.LoadTextureFromImage(HEARTS_IMG_SMALL)
+	RANK_IMGS_SMALL[dm.SPADES] = rl.LoadTextureFromImage(SPADES_IMG_SMALL)
+	RANK_IMGS_SMALL[dm.ANY] = rl.LoadTextureFromImage(JOKER_IMG_SMALL)
 }
 
 func (window *Window) unloadGraphics() {
@@ -196,7 +216,7 @@ func (window *Window) SetId(id int) {
 	window.clientId = id
 }
 
-func (window *Window) SetGameState(gameState game_manager.GAME_STATE) {
+func (window *Window) SetGameState(gameState gm.GAME_STATE) {
 	window.gameState = gameState
 }
 
@@ -218,6 +238,7 @@ func (window *Window) UpdateState(sv cm.StateView) {
 	window.discardPile = sv.DiscardPile
 	window.updateLastDiscardedCard(window.discardPile.SeekBack())
 	window.currentTurnId = sv.TurnPlayerId
+	window.updateTableSequences(sv.TableSequences)
 }
 
 func (window *Window) PlaceText(text string) {
@@ -237,13 +258,29 @@ func (window *Window) updatePlayerHand(hand []*dm.Card) {
 				float32(CARD_WIDTH),
 				float32(CARD_HEIGHT),
 			)
-			window.playerCards = append(window.playerCards, *NewCardModel(card, rect))
+			window.playerCards = append(window.playerCards, *NewCardModel(card, rect, false))
 		}
 	}
 }
 
 func (window *Window) updateLastDiscardedCard(card *dm.Card) {
-	window.lastDiscardedCard = NewCardModel(card, DISCARD_PILE_POS)
+	window.lastDiscardedCard = NewCardModel(card, DISCARD_PILE_POS, false)
+}
+
+func (window *Window) updateTableSequences(sequences []gm.Sequence) {
+	tableSequencesNew := make([]SequenceModel, 0)
+	for i, sequence := range sequences {
+		firstCardPos := rl.NewVector2(
+			float32(CARD_WIDTH),
+			float32(i*int(SEQUENCE_CARD_HEIGHT)),
+		)
+		sequenceModel := NewSequenceModel(
+			sequence.TableCards,
+			firstCardPos,
+		)
+		tableSequencesNew = append(tableSequencesNew, *sequenceModel)
+	}
+	window.tableSequences = tableSequencesNew
 }
 
 func (window *Window) drawStaticButton(fbutton *FuncButton) {
@@ -271,11 +308,11 @@ func (window *Window) drawStaticButton(fbutton *FuncButton) {
 
 func (window *Window) handleMouseClicked(mousePos *rl.Vector2) {
 	switch window.gameState {
-	case game_manager.PRE_START:
+	case gm.PRE_START:
 		if window.readyButton.InRect(mousePos) {
 			window.toggleReady()
 		}
-	case game_manager.IN_GAME:
+	case gm.IN_GAME:
 		window.inRoundManagerClick(mousePos)
 	default:
 		break
@@ -284,7 +321,7 @@ func (window *Window) handleMouseClicked(mousePos *rl.Vector2) {
 
 func (window *Window) handleMouseDrag(mousePos *rl.Vector2) {
 	switch window.gameState {
-	case game_manager.IN_GAME:
+	case gm.IN_GAME:
 		window.inRoundManagerDrag(mousePos)
 	default:
 		break

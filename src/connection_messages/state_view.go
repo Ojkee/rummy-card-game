@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	dm "rummy-card-game/src/game_logic/deck_manager"
+	gm "rummy-card-game/src/game_logic/game_manager"
 	"rummy-card-game/src/game_logic/player"
 )
 
@@ -14,6 +15,7 @@ type StateView struct {
 	DiscardPile       *dm.CardQueue  `json:"discard_pile"`
 	PlayerEntity      *player.Player `json:"player_entity"`
 	OpponentsNumCards []int          `json:"opponents_num_cards"`
+	TableSequences    []gm.Sequence  `json:"table_sequences"`
 }
 
 func NewStateView(
@@ -21,6 +23,7 @@ func NewStateView(
 	drawPile, discardPile *dm.CardQueue,
 	playerEntity *player.Player,
 	opponentsNumCards []int,
+	tableSequences []gm.Sequence,
 ) *StateView {
 	return &StateView{
 		DefaultMessage: DefaultMessage{
@@ -31,6 +34,7 @@ func NewStateView(
 		DiscardPile:       discardPile,
 		PlayerEntity:      playerEntity,
 		OpponentsNumCards: opponentsNumCards,
+		TableSequences:    tableSequences,
 	}
 }
 

@@ -15,8 +15,6 @@ import (
 )
 
 type Server struct {
-	debugMode DEBUG_MODE
-
 	upgrader    *websocket.Upgrader
 	mu          sync.Mutex
 	roomId      int
@@ -31,8 +29,6 @@ func NewServer(minPlayers, maxPlayers int) *Server {
 		_clients[i] = nil
 	}
 	return &Server{
-		debugMode: NO_DEBUG,
-
 		mu:          sync.Mutex{},
 		roomId:      0,
 		gameStarted: false,
