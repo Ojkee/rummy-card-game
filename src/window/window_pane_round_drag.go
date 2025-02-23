@@ -1,6 +1,8 @@
 package window
 
 import (
+	"log"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
@@ -11,13 +13,15 @@ func (window *Window) inRoundManagerDrag(mousePos *rl.Vector2) {
 	if window.currentDragCardIdx == -1 {
 		window.currentDragCardIdx = window.getDragCardIdx(mousePos)
 	} else {
-		window.playerCards[window.currentDragCardIdx].MoveX(mousePos.X - float32(CARD_WIDTH)/2)
+		newX := mousePos.X - float32(CARD_WIDTH)/2
+		window.playerCards[window.currentDragCardIdx].MoveX(newX)
 	}
 }
 
 func (window *Window) getDragCardIdx(mousePos *rl.Vector2) int {
 	for i, card := range window.playerCards {
 		if card.InRect(*mousePos) {
+			window.dragCardStartRec = card.rect
 			return i
 		}
 	}
@@ -30,9 +34,8 @@ func (window *Window) rearrangeNewCardPosX() {
 	}
 	newIdx := window.getReleaseDragCardIdx()
 	oldIdx := window.currentDragCardIdx
-	if newIdx == oldIdx {
-		cards := window.cardModelsToCards()
-		window.updatePlayerHand(cards)
+	if newIdx == oldIdx || newIdx == oldIdx+1 {
+		window.playerCards[oldIdx].MoveX(window.dragCardStartRec.X)
 		return
 	}
 	window.insertDragCardNewIdx(newIdx, oldIdx)
@@ -101,6 +104,6 @@ func (window *Window) cardModelsToCards() []*dm.Card {
 func (window *Window) sendRearrangedHand() {
 	cards := window.cardModelsToCards()
 	window.updatePlayerHand(cards)
-	actionMsg := cm.NewActionRearrangeCardsMessage(window.clientId, cards)
-	window.sendActionCallback(actionMsg)
+	actionRearrangeMsg := cm.NewActionRearrangeCardsMessage(window.clientId, cards)
+	window.sendActionCallback(actionRearrangeMsg)
 }

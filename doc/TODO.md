@@ -22,7 +22,7 @@
 - [ ] Chat
 - [ ] Nicer UI
 - [ ] Fast emulation using 4 bots with data gathering
-- [ ] Highlight sequence that don't construct sequence
+- [ ] Highlight locked cards that don't construct sequence
 
 ## Bugs
 ### FIX ASAP

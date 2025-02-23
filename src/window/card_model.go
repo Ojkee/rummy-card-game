@@ -58,6 +58,7 @@ func (card *CardModel) IsSelectedSequence() bool {
 }
 
 func (card *CardModel) MoveX(x float32) {
+	card.innerRect.X = x + float32(CARD_GAP)
 	card.rect.X = x
 }
 

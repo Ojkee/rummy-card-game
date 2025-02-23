@@ -83,6 +83,16 @@ var (
 	)
 )
 
+// TABLE
+const (
+	TABLE_X            = float32(52 + SEQUENCE_CARD_WIDTH)
+	TABLE_Y            = 100
+	TABLE_WIDTH        = float32(WINDOW_WIDTH) - 2*TABLE_X
+	TABLE_HEIGHT       = WINDOW_HEIGHT - 2*TABLE_Y
+	TABLE_OFFSET_COL_1 = TABLE_X
+	TABLE_OFFSET_COL_2 = float32(WINDOW_WIDTH) - TABLE_X - SEQUENCE_CARD_WIDTH*12
+)
+
 // SEQUENCES
 const (
 	SEQUENCE_GAP               float32 = float32(CARD_GAP) / 2

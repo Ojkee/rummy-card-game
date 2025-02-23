@@ -30,6 +30,7 @@ type Window struct {
 	isDragging         bool
 	startDragPos       rl.Vector2
 	currentDragCardIdx int
+	dragCardStartRec   rl.Rectangle
 
 	currentTurnId     int
 	playerCards       []CardModel
@@ -271,8 +272,8 @@ func (window *Window) updateTableSequences(sequences []gm.Sequence) {
 	tableSequencesNew := make([]SequenceModel, 0)
 	for i, sequence := range sequences {
 		firstCardPos := rl.NewVector2(
-			float32(CARD_WIDTH),
-			float32(i*int(SEQUENCE_CARD_HEIGHT)),
+			TABLE_X,
+			float32(i)*SEQUENCE_CARD_HEIGHT+TABLE_Y,
 		)
 		sequenceModel := NewSequenceModel(
 			sequence.TableCards,

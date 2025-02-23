@@ -44,6 +44,12 @@ func (window *Window) lockSelectedSequence() {
 	}
 }
 
+func (window *Window) resetLockedSequencesIds() {
+	for key := range window.lockedSequencesIds {
+		window.lockedSequencesIds[key] = false
+	}
+}
+
 func (window *Window) unlockAllById(seqId int) {
 	for i := 0; i < len(window.playerCards); i++ {
 		if window.playerCards[i].sequenceId == seqId {
