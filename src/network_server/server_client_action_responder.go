@@ -48,9 +48,9 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 		)
 		return err
 	case cm.INITIAL_MELD:
-		var actionInitialMeldMessage cm.ActionInitialMeldMessage
+		var actionInitialMeldMessage cm.ActionMeldMessage
 		json.Unmarshal(actionMsg, &actionInitialMeldMessage)
-		err := server.handleClientInitialMeld(
+		err := server.handleClientMeld(
 			actionInitialMeldMessage.ClientId,
 			actionInitialMeldMessage.Sequences,
 		)
@@ -151,7 +151,7 @@ func (server *Server) sendWindowMessage(clientId int, textMsg string) error {
 	return nil
 }
 
-func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Card) error {
+func (server *Server) handleClientMeld(clientId int, sequences [][]*dm.Card) error {
 	isPurePresent := false
 	sumPoints := 0
 	numCards := 0
@@ -173,10 +173,10 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 		sumPoints += gm.SequencePoints(sequence)
 		numCards += len(sequence)
 	}
-	if !isPurePresent {
+	if !isPurePresent && !server.clients[clientId].hasMelded {
 		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
 		return err
-	} else if sumPoints < gm.MIN_POINTS_TO_MELD {
+	} else if sumPoints < gm.MIN_POINTS_TO_MELD && !server.clients[clientId].hasMelded {
 		errMsg := fmt.Sprintf("You need at least %d points", gm.MIN_POINTS_TO_MELD)
 		err := server.sendWindowMessage(clientId, errMsg)
 		return err
@@ -185,7 +185,15 @@ func (server *Server) handleClientInitialMeld(clientId int, sequences [][]*dm.Ca
 		return err
 	}
 	for _, sequence := range sequences {
-		server.table.AddNewSequence(sequence, gm.SEQUENCE_PURE)
+		var sequenceType gm.SEQUENCE_TYPE
+		if gm.IsPureSequence(sequence) {
+			sequenceType = gm.SEQUENCE_PURE
+		} else if gm.IsAscendingSequence(sequence) {
+			sequenceType = gm.SEQUENCE_ASCENDING
+		} else {
+			sequenceType = gm.SEQUENCE_SAME_RANK
+		}
+		server.table.AddNewSequence(sequence, sequenceType)
 		server.table.FilterCards(clientId, sequence)
 	}
 	server.clients[clientId].hasMelded = true

@@ -61,8 +61,8 @@ func (window *Window) unlockAllById(seqId int) {
 
 func (window *Window) numLockedSequences() int {
 	lockCounter := 0
-	for _, val := range window.lockedSequencesIds {
-		if val {
+	for _, isUsed := range window.lockedSequencesIds {
+		if isUsed {
 			lockCounter++
 		}
 	}
@@ -79,7 +79,9 @@ func (window *Window) collectLockedSequencesCards() [][]*dm.Card {
 					cardsInSameSeq = append(cardsInSameSeq, card.srcCard)
 				}
 			}
-			retVal = append(retVal, cardsInSameSeq)
+			if len(cardsInSameSeq) > 0 {
+				retVal = append(retVal, cardsInSameSeq)
+			}
 		}
 	}
 	return retVal
@@ -89,7 +91,8 @@ func (window *Window) handleInitialMeldButton(mousePos *rl.Vector2) {
 	if window.numLockedSequences() > 0 &&
 		window.initialMeldButton.InRect(mousePos) {
 		lockedSequences := window.collectLockedSequencesCards()
-		lockedSequencesMessage := cm.NewActionInitialMeldMessage(window.clientId, lockedSequences)
+		lockedSequencesMessage := cm.NewActionMeldMessage(window.clientId, lockedSequences)
 		window.sendActionCallback(lockedSequencesMessage)
+		window.resetLockedSequencesIds()
 	}
 }

@@ -1,8 +1,6 @@
 package window
 
 import (
-	"log"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
@@ -40,6 +38,7 @@ func (window *Window) rearrangeNewCardPosX() {
 	}
 	window.insertDragCardNewIdx(newIdx, oldIdx)
 	window.sendRearrangedHand()
+	window.resetLockedSequencesIds()
 }
 
 func (window *Window) getReleaseDragCardIdx() int {

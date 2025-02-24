@@ -35,7 +35,7 @@ func (client *Client) GetId() int {
 
 func (client *Client) SetId(id int) {
 	client.id = id
-	client.gameWindow.SetId(id)
+	client.gameWindow.SetClientId(id)
 }
 
 func (client *Client) Connect() {

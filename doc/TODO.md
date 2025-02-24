@@ -23,12 +23,15 @@
 - [ ] Nicer UI
 - [ ] Fast emulation using 4 bots with data gathering
 - [ ] Highlight locked cards that don't construct sequence
+- [ ] Player can enter nickname
+- [ ] End game screen
 
 ## Bugs
 ### FIX ASAP
 - [x] Discarding card with exact copy discards both cards
-
+- [x] Meld button doesn't disappear after meld
 
 
 ### FIX PLEASE
 - [ ] Ascending sequence ACE -> TWO -> TRHEE doesn't work
+- [ ] Rearranging sequences or drawing card shouldn't unlock sequences on hand

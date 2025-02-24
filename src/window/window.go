@@ -213,7 +213,7 @@ func (window *Window) SetActionMessageCallback(sendAction func(cm.ActionMessage)
 	window.sendActionCallback = sendAction
 }
 
-func (window *Window) SetId(id int) {
+func (window *Window) SetClientId(id int) {
 	window.clientId = id
 }
 

@@ -42,9 +42,9 @@ func IsSameRankSequence(cards []*dm.Card) bool {
 }
 
 func IsAscendingSequence(cards []*dm.Card) bool {
-	sortedCards := sortByRank(cards)
+	sortedCards := SortByRank(cards)
 	targetSuit := sortedCards[0].Suit
-	targetRank := nextRank(sortedCards[0].Rank, true)
+	targetRank := NextRank(sortedCards[0].Rank, true)
 	if targetRank == nil {
 		return false
 	}
@@ -59,15 +59,14 @@ func IsAscendingSequence(cards []*dm.Card) bool {
 		} else if targetRank == nil || (card.Suit != targetSuit && card.Suit != dm.ANY) {
 			return false
 		} else if *targetRank != card.Rank {
-			// Assume that jokers are at the end after sort
 			if sortedCards[n-1-usedJokers].Rank == dm.JOKER {
-				targetRank = nextRank(*targetRank, false)
+				targetRank = NextRank(*targetRank, false)
 				usedJokers++
 				continue
 			}
 			return false
 		}
-		targetRank = nextRank(*targetRank, false)
+		targetRank = NextRank(*targetRank, false)
 		i++
 	}
 	return true
@@ -93,14 +92,14 @@ func IsPureSequence(cards []*dm.Card) bool {
 	return false
 }
 
-func sortByRank(cards []*dm.Card) []*dm.Card {
+func SortByRank(cards []*dm.Card) []*dm.Card {
 	sort.Slice(cards, func(i int, j int) bool {
 		return cards[i].Rank < cards[j].Rank
 	})
 	return cards
 }
 
-func nextRank(rank dm.Rank, isFirst bool) *dm.Rank {
+func NextRank(rank dm.Rank, isFirst bool) *dm.Rank {
 	if rank == dm.ACE && !isFirst {
 		return nil
 	} else if rank == dm.ACE {
@@ -117,4 +116,13 @@ func SequencePoints(cards []*dm.Card) int {
 		sumPoints += card.Rank.Points()
 	}
 	return sumPoints
+}
+
+func ContainsJoker(cards []*dm.Card) bool {
+	for _, card := range cards {
+		if card.Rank == dm.JOKER {
+			return true
+		}
+	}
+	return false
 }

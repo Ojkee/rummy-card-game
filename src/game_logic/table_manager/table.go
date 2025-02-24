@@ -179,7 +179,32 @@ func (table *Table) IsWinner(playerId int) bool {
 }
 
 func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TYPE) {
-	table.sequences = append(table.sequences, *gm.NewSequence(cards, sequenceType))
+	if sequenceType != gm.SEQUENCE_SAME_RANK && gm.ContainsJoker(cards) {
+		sortedCards := table.sortAscendingSequence(cards)
+		table.sequences = append(table.sequences, *gm.NewSequence(sortedCards, sequenceType))
+	} else {
+		table.sequences = append(table.sequences, *gm.NewSequence(cards, sequenceType))
+	}
+}
+
+func (table *Table) sortAscendingSequence(cards []*dm.Card) []*dm.Card {
+	sortedCards := gm.SortByRank(cards)
+	nextRank := gm.NextRank(sortedCards[0].Rank, true)
+	n := len(sortedCards)
+	for i := 1; i < n; i++ {
+		if sortedCards[i].Rank == dm.JOKER {
+			return sortedCards
+		}
+		if sortedCards[i].Rank != *nextRank {
+			jokFromEnd := sortedCards[n-1]
+			for j := n - 1; j > i; j-- {
+				sortedCards[j] = sortedCards[j-1]
+			}
+			sortedCards[i] = jokFromEnd
+		}
+		nextRank = gm.NextRank(*nextRank, false)
+	}
+	return sortedCards
 }
 
 func (table *Table) FilterCards(playerId int, cards []*dm.Card) {

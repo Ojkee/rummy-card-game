@@ -6,14 +6,14 @@ import (
 	dm "rummy-card-game/src/game_logic/deck_manager"
 )
 
-type ActionInitialMeldMessage struct {
+type ActionMeldMessage struct {
 	ClientMessage
 	ActionType ACTION_TYPE  `json:"action_type"`
 	Sequences  [][]*dm.Card `json:"sequences"`
 }
 
-func NewActionInitialMeldMessage(clientId int, sequences [][]*dm.Card) *ActionInitialMeldMessage {
-	return &ActionInitialMeldMessage{
+func NewActionMeldMessage(clientId int, sequences [][]*dm.Card) *ActionMeldMessage {
+	return &ActionMeldMessage{
 		ClientMessage: ClientMessage{
 			DefaultMessage: DefaultMessage{
 				MessageType: PLAYER_ACTION,
@@ -25,10 +25,10 @@ func NewActionInitialMeldMessage(clientId int, sequences [][]*dm.Card) *ActionIn
 	}
 }
 
-func (aimm *ActionInitialMeldMessage) Json() ([]byte, error) {
-	return json.Marshal(aimm)
+func (amm *ActionMeldMessage) Json() ([]byte, error) {
+	return json.Marshal(amm)
 }
 
-func (aimm *ActionInitialMeldMessage) GetActionType() ACTION_TYPE {
-	return aimm.ActionType
+func (amm *ActionMeldMessage) GetActionType() ACTION_TYPE {
+	return amm.ActionType
 }
