@@ -44,6 +44,7 @@ type Window struct {
 	lockedSequencesIds map[int]bool
 
 	tableSequences []SequenceModel
+	availableSpots []AvailableSpot
 }
 
 func NewWindow() *Window {
@@ -276,7 +277,7 @@ func (window *Window) updateTableSequences(sequences []gm.Sequence) {
 			float32(i)*SEQUENCE_CARD_HEIGHT+TABLE_Y,
 		)
 		sequenceModel := NewSequenceModel(
-			sequence.TableCards,
+			&sequence,
 			firstCardPos,
 		)
 		tableSequencesNew = append(tableSequencesNew, *sequenceModel)

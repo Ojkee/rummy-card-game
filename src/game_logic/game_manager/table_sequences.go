@@ -21,3 +21,12 @@ func NewSequence(cards []*dm.Card, sequenceType SEQUENCE_TYPE) *Sequence {
 		Type:       sequenceType,
 	}
 }
+
+func (s *Sequence) GetSuitIfAscending() dm.Suit {
+	for _, card := range s.TableCards {
+		if card.Suit != dm.ANY {
+			return card.Suit
+		}
+	}
+	return dm.ANY
+}

@@ -126,3 +126,69 @@ func ContainsJoker(cards []*dm.Card) bool {
 	}
 	return false
 }
+
+func FitSequenceIds(card *dm.Card, sequence *Sequence) []int {
+	switch sequence.Type {
+	case SEQUENCE_SAME_RANK:
+		if len(sequence.TableCards) >= 4 || usedSuit(&card.Suit, sequence) {
+			return []int{}
+		}
+		return []int{-1, len(sequence.TableCards)}
+	case SEQUENCE_PURE, SEQUENCE_ASCENDING:
+		if seqSuit := sequence.GetSuitIfAscending(); seqSuit == dm.ANY ||
+			(card.Rank != dm.JOKER && seqSuit != card.Suit) {
+			return []int{}
+		}
+		return findInAscending(card, sequence)
+	}
+	return []int{}
+}
+
+func usedSuit(suit *dm.Suit, sequence *Sequence) bool {
+	if *suit == dm.ANY {
+		return false
+	}
+	for _, card := range sequence.TableCards {
+		if card.Suit == *suit {
+			return true
+		}
+	}
+	return false
+}
+
+func findInAscending(card *dm.Card, sequence *Sequence) []int {
+	retVal := make([]int, 0)
+	if canAddBegin(card, sequence) {
+		retVal = append(retVal, -1)
+	}
+	if canAddEnd(card, sequence) {
+		retVal = append(retVal, len(sequence.TableCards))
+	}
+	return retVal
+}
+
+func canAddBegin(card *dm.Card, sequence *Sequence) bool {
+	if card.Rank == dm.JOKER {
+		return sequence.TableCards[0].Rank != dm.ACE
+	}
+	firstCard := sequence.TableCards[0]
+	nextRank := NextRank(card.Rank, false)
+	if nextRank == nil {
+		return false
+	}
+	if firstCard.Rank != dm.ACE && *nextRank == firstCard.Rank {
+		return true
+	}
+	return false
+}
+
+func canAddEnd(card *dm.Card, sequence *Sequence) bool {
+	if card.Rank == dm.JOKER {
+		return sequence.TableCards[len(sequence.TableCards)-1].Rank != dm.ACE
+	}
+	lastCard := sequence.TableCards[len(sequence.TableCards)-1]
+	if lastCard.Rank != dm.ACE && *NextRank(lastCard.Rank, false) == card.Rank {
+		return true
+	}
+	return false
+}

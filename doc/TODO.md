@@ -2,13 +2,14 @@
 
 ## Features
 ### Important
-- [ ] Placing sequences on the screen
+- [x] Placing sequences on the screen
 - [x] Propper turn handling (draw -> action -> discard)
 - [x] Player should be able to rearange cards
 - [x] Initial meld (51 points and at least one pure sequence)
 - [x] Drawing card from discard pile
 - [ ] Replacing joker with propper card
 - [ ] Adding cards to existing sequences
+- [ ] Dragging sequence into another to get Joker/Merge
 - [ ] Handling reshuffle when draw pile gets empty
 
 ### Further work
@@ -30,6 +31,7 @@
 ### FIX ASAP
 - [x] Discarding card with exact copy discards both cards
 - [x] Meld button doesn't disappear after meld
+- [ ] Append begin/end if first/last is joker
 
 
 ### FIX PLEASE

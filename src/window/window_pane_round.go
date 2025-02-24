@@ -23,7 +23,6 @@ func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 	}
 	window.handleCardClicked(mousePos)
 	window.handleDiscardButton(mousePos)
-
 	window.handleLockSequence(mousePos)
 	window.handleInitialMeldButton(mousePos)
 }
@@ -54,6 +53,9 @@ func (window *Window) drawInRound() {
 	for _, sequence := range window.tableSequences {
 		sequence.Draw()
 	}
+	for _, availableSpot := range window.availableSpots {
+		availableSpot.Draw()
+	}
 }
 
 func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
@@ -63,6 +65,12 @@ func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
 			if window.playerCards[i].sequenceId != -1 {
 				window.unlockAllById(window.playerCards[i].sequenceId)
 			}
+			if card := window.getCardIfOneSelected(); card != nil {
+				window.initAvailableSpots(card)
+			} else {
+				window.resetAvailableSpots()
+			}
+			break
 		}
 	}
 }

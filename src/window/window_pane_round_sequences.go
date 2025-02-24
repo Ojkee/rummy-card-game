@@ -1,10 +1,13 @@
 package window
 
 import (
+	"log"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
+	gm "rummy-card-game/src/game_logic/game_manager"
 )
 
 func (window *Window) handleLockSequence(mousePos *rl.Vector2) {
@@ -95,4 +98,45 @@ func (window *Window) handleInitialMeldButton(mousePos *rl.Vector2) {
 		window.sendActionCallback(lockedSequencesMessage)
 		window.resetLockedSequencesIds()
 	}
+}
+
+func (window *Window) initAvailableSpots(cardModel *CardModel) {
+	window.availableSpots = nil
+	window.availableSpots = make([]AvailableSpot, 0)
+	for _, sequenceModel := range window.tableSequences {
+		ids := gm.FitSequenceIds(cardModel.srcCard, sequenceModel.sequence)
+		log.Println(ids)
+		window.addNewAvailableSpots(ids, sequenceModel)
+	}
+}
+
+func (window *Window) addNewAvailableSpots(ids []int, sequenceModel SequenceModel) {
+	newRect := func(x float32) rl.Rectangle {
+		return rl.NewRectangle(
+			x,
+			sequenceModel.firstCardPos.Y,
+			SEQUENCE_CARD_WIDTH,
+			SEQUENCE_CARD_HEIGHT,
+		)
+	}
+	for _, idx := range ids {
+		if idx < 0 {
+			rect := newRect(sequenceModel.firstCardPos.X - SEQUENCE_CARD_WIDTH)
+			availableSpot := NewAvailableSpot(rect, ADD_BEGIN)
+			window.availableSpots = append(window.availableSpots, *availableSpot)
+		} else if idx >= len(sequenceModel.cardModels) {
+			rect := newRect(sequenceModel.firstCardPos.X + sequenceModel.GetSize().X)
+			availableSpot := NewAvailableSpot(rect, ADD_END)
+			window.availableSpots = append(window.availableSpots, *availableSpot)
+		} else {
+			rect := newRect(sequenceModel.firstCardPos.X + float32(idx)*SEQUENCE_CARD_WIDTH)
+			availableSpot := NewAvailableSpot(rect, REPLACE_JOKER)
+			window.availableSpots = append(window.availableSpots, *availableSpot)
+		}
+	}
+}
+
+func (window *Window) resetAvailableSpots() {
+	window.availableSpots = nil
+	window.availableSpots = make([]AvailableSpot, 0)
 }

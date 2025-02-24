@@ -18,6 +18,7 @@ func NewPlayer(id int) *Player {
 }
 
 func (p *Player) SetHand(newHand []*dm.Card) {
+	p.Hand = nil
 	p.Hand = newHand
 }
 

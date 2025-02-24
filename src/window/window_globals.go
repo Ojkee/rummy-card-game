@@ -27,10 +27,11 @@ var (
 	COLOR_BEIGE            = rl.NewColor(255, 248, 231, 255)
 	COLOR_BUTTON_READY     = rl.NewColor(81, 123, 74, 255)
 	COLOR_BUTTON_NOT_READY = rl.NewColor(144, 55, 55, 255)
-	COLOR_LOCK_COLOR_1     = rl.NewColor(255, 0, 0, 255)
-	COLOR_LOCK_COLOR_2     = rl.NewColor(0, 255, 0, 255)
-	COLOR_LOCK_COLOR_3     = rl.NewColor(0, 0, 255, 255)
-	COLOR_LOCK_COLOR_4     = rl.NewColor(255, 0, 255, 255)
+	COLOR_LOCK_COLOR_1     = rl.NewColor(255, 0, 127, 255)
+	COLOR_LOCK_COLOR_2     = rl.NewColor(127, 255, 0, 255)
+	COLOR_LOCK_COLOR_3     = rl.NewColor(0, 127, 255, 255)
+	COLOR_LOCK_COLOR_4     = rl.NewColor(255, 128, 255, 255)
+	COLOR_HIGHLIGHT_SPOT   = rl.NewColor(0, 255, 0, 64)
 )
 
 var LOCK_COLORS = map[int]rl.Color{
