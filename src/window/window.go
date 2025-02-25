@@ -242,6 +242,7 @@ func (window *Window) UpdateState(sv cm.StateView) {
 	window.currentTurnId = sv.TurnPlayerId
 	window.updateTableSequences(sv.TableSequences)
 	window.availableSpots = nil
+	window.availableSpots = make([]gm.AvailableSpot, 0)
 }
 
 func (window *Window) PlaceText(text string) {

@@ -34,7 +34,9 @@
 - [ ] Append begin/end if first/last is joker
 - [ ] Joker appends to the end of sequence after Ace
 - [ ] After clicking meld when lock seqs don't meet requirements restarts lock color and messes locks 
-- [ ] Replacing needs better refresh of jokImitation when appending first card
+- [x] Replacing needs better refresh of jokImitation when appending first card
+- [ ] Player shouldn't append last card to table sequence
+- [ ] Available spot rect should update after appending new card to seq
 
 
 ### FIX PLEASE

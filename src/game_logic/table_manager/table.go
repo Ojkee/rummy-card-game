@@ -206,8 +206,9 @@ func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.Jo
 	}
 	for i := 1; i < n; i++ {
 		if sortedCards[i].Rank == dm.JOKER {
-			// TODO: current card add imitation
-			return sortedCards, jokerImitations
+			imitatedCard := dm.NewCard(suit, *nextRank)
+			jokerImitation := *gm.NewJokerImitation(i, imitatedCard)
+			jokerImitations = append(jokerImitations, jokerImitation)
 		}
 		if sortedCards[i].Rank != *nextRank {
 			jokFromEnd := sortedCards[n-1]
@@ -266,6 +267,7 @@ func (table *Table) HandleAvailableSpotInSequence(
 	}
 
 	table.filterCard(playerId, card)
+	table.updateJokerImitation(sequenceId)
 	return nil
 }
 
@@ -297,4 +299,11 @@ func (table *Table) filterJokImitation(seqId, cardId int) {
 		}
 	}
 	table.jokerImitations[seqId] = newJokImits
+}
+
+func (table *Table) updateJokerImitation(seqId int) {
+	oldSeqCards := table.sequences[seqId].TableCards
+	newSeqCards, imitations := table.sortAscendingSequence(oldSeqCards)
+	table.sequences[seqId].TableCards = newSeqCards
+	table.jokerImitations[seqId] = imitations
 }
