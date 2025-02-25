@@ -2,6 +2,7 @@ package game_manager
 
 import (
 	"sort"
+	"strconv"
 
 	dm "rummy-card-game/src/game_logic/deck_manager"
 )
@@ -164,6 +165,9 @@ func findInAscending(card *dm.Card, sequence *Sequence) []int {
 	if canAddEnd(card, sequence) {
 		retVal = append(retVal, len(sequence.TableCards))
 	}
+	replaceIds := getReplaceIds(card, sequence)
+	retVal = append(retVal, replaceIds...)
+	// TODO
 	return retVal
 }
 
@@ -191,4 +195,15 @@ func canAddEnd(card *dm.Card, sequence *Sequence) bool {
 		return true
 	}
 	return false
+}
+
+func getReplaceIds(card *dm.Card, sequence *Sequence) []int {
+	replaceIds := make([]int, 0)
+	for idxStr, jokerImitation := range sequence.JokerImitations {
+		if jokerImitation == *card {
+			i, _ := strconv.Atoi(idxStr)
+			return []int{i}
+		}
+	}
+	return replaceIds
 }

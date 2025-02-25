@@ -3,6 +3,7 @@ package table_manager
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
@@ -180,20 +181,30 @@ func (table *Table) IsWinner(playerId int) bool {
 
 func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TYPE) {
 	if sequenceType != gm.SEQUENCE_SAME_RANK && gm.ContainsJoker(cards) {
-		sortedCards := table.sortAscendingSequence(cards)
-		table.sequences = append(table.sequences, *gm.NewSequence(sortedCards, sequenceType))
+		sortedCards, jokerImitations := table.sortAscendingSequence(cards)
+		newSequence := *gm.NewSequence(sortedCards, sequenceType)
+		newSequence.SetJokerImitations(jokerImitations)
+		table.sequences = append(table.sequences, newSequence)
 	} else {
 		table.sequences = append(table.sequences, *gm.NewSequence(cards, sequenceType))
 	}
 }
 
-func (table *Table) sortAscendingSequence(cards []*dm.Card) []*dm.Card {
+func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, map[string]dm.Card) {
+	jokerImitations := make(map[string]dm.Card)
 	sortedCards := gm.SortByRank(cards)
 	nextRank := gm.NextRank(sortedCards[0].Rank, true)
 	n := len(sortedCards)
+	var suit dm.Suit
+	for _, card := range sortedCards {
+		if card.Suit != dm.ANY {
+			suit = card.Suit
+			break
+		}
+	}
 	for i := 1; i < n; i++ {
 		if sortedCards[i].Rank == dm.JOKER {
-			return sortedCards
+			return sortedCards, jokerImitations
 		}
 		if sortedCards[i].Rank != *nextRank {
 			jokFromEnd := sortedCards[n-1]
@@ -201,10 +212,12 @@ func (table *Table) sortAscendingSequence(cards []*dm.Card) []*dm.Card {
 				sortedCards[j] = sortedCards[j-1]
 			}
 			sortedCards[i] = jokFromEnd
+			jokerImitation := dm.NewCard(suit, *nextRank)
+			jokerImitations[strconv.Itoa(i)] = *jokerImitation
 		}
 		nextRank = gm.NextRank(*nextRank, false)
 	}
-	return sortedCards
+	return sortedCards, jokerImitations
 }
 
 func (table *Table) FilterCards(playerId int, cards []*dm.Card) {

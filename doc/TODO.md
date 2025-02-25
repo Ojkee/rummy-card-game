@@ -32,6 +32,7 @@
 - [x] Discarding card with exact copy discards both cards
 - [x] Meld button doesn't disappear after meld
 - [ ] Append begin/end if first/last is joker
+- [ ] Joker appends to the end of sequence after Ace
 
 
 ### FIX PLEASE

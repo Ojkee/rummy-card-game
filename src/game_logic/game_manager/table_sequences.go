@@ -11,14 +11,16 @@ const (
 )
 
 type Sequence struct {
-	TableCards []*dm.Card    `json:"table_cards"`
-	Type       SEQUENCE_TYPE `json:"type"`
+	TableCards      []*dm.Card         `json:"table_cards"`
+	Type            SEQUENCE_TYPE      `json:"type"`
+	JokerImitations map[string]dm.Card `json:"joker_imitations"`
 }
 
 func NewSequence(cards []*dm.Card, sequenceType SEQUENCE_TYPE) *Sequence {
 	return &Sequence{
-		TableCards: cards,
-		Type:       sequenceType,
+		TableCards:      cards,
+		Type:            sequenceType,
+		JokerImitations: make(map[string]dm.Card),
 	}
 }
 
@@ -29,4 +31,8 @@ func (s *Sequence) GetSuitIfAscending() dm.Suit {
 		}
 	}
 	return dm.ANY
+}
+
+func (s *Sequence) SetJokerImitations(jokerImitations map[string]dm.Card) {
+	s.JokerImitations = jokerImitations
 }
