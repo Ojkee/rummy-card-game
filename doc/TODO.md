@@ -7,8 +7,8 @@
 - [x] Player should be able to rearange cards
 - [x] Initial meld (51 points and at least one pure sequence)
 - [x] Drawing card from discard pile
-- [ ] Replacing joker with propper card
-- [ ] Adding cards to existing sequences
+- [x] Replacing joker with propper card
+- [x] Adding cards to existing sequences
 - [ ] Dragging sequence into another to get Joker/Merge
 - [ ] Handling reshuffle when draw pile gets empty
 
@@ -33,6 +33,8 @@
 - [x] Meld button doesn't disappear after meld
 - [ ] Append begin/end if first/last is joker
 - [ ] Joker appends to the end of sequence after Ace
+- [ ] After clicking meld when lock seqs don't meet requirements restarts lock color and messes locks 
+- [ ] Replacing needs better refresh of jokImitation when appending first card
 
 
 ### FIX PLEASE

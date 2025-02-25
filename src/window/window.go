@@ -44,7 +44,7 @@ type Window struct {
 	lockedSequencesIds map[int]bool
 
 	tableSequences []SequenceModel
-	availableSpots []AvailableSpot
+	availableSpots []gm.AvailableSpot
 }
 
 func NewWindow() *Window {
@@ -241,6 +241,7 @@ func (window *Window) UpdateState(sv cm.StateView) {
 	window.updateLastDiscardedCard(window.discardPile.SeekBack())
 	window.currentTurnId = sv.TurnPlayerId
 	window.updateTableSequences(sv.TableSequences)
+	window.availableSpots = nil
 }
 
 func (window *Window) PlaceText(text string) {

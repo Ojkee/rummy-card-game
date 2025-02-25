@@ -1,8 +1,6 @@
 package window
 
 import (
-	"log"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
@@ -16,6 +14,35 @@ func (window *Window) handleLockSequence(mousePos *rl.Vector2) {
 			window.lockSelectedSequence()
 		}
 	}
+}
+
+func (window *Window) handleAvailableSpots(mousePos *rl.Vector2) {
+	for _, availableSpot := range window.availableSpots {
+		if availableSpot.InRect(mousePos) {
+			selectedCard := window.getCardIfOneSelected()
+			if selectedCard == nil {
+				return
+			}
+			newUpdateSequenceMsg := cm.NewActionUpdateTableSequenceMessage(
+				window.clientId,
+				availableSpot.GetSequence().Id,
+				window.getCardIdxByType(availableSpot.GetSpotType(), availableSpot.GetSequence()),
+				selectedCard.srcCard,
+			)
+			window.sendActionCallback(newUpdateSequenceMsg)
+			return
+		}
+	}
+}
+
+func (window *Window) getCardIdxByType(spotType gm.AVAILABLE_SPOT_TYPE, seq gm.Sequence) int {
+	switch spotType {
+	case gm.ADD_BEGIN:
+		return -1
+	case gm.ADD_END:
+		return len(seq.TableCards) + 1
+	}
+	return 0
 }
 
 func (window *Window) getSelectedUnlockedCards() []*CardModel {
@@ -40,8 +67,8 @@ func (window *Window) getNextLockId() int {
 
 func (window *Window) lockSelectedSequence() {
 	nextLockId := window.getNextLockId()
-	for i := 0; i < len(window.playerCards); i++ {
-		if window.playerCards[i].isSelected && window.playerCards[i].sequenceId == -1 {
+	for i, card := range window.playerCards {
+		if card.isSelected && card.sequenceId == -1 {
 			window.playerCards[i].SetSequenceId(nextLockId)
 		}
 	}
@@ -102,10 +129,9 @@ func (window *Window) handleInitialMeldButton(mousePos *rl.Vector2) {
 
 func (window *Window) initAvailableSpots(cardModel *CardModel) {
 	window.availableSpots = nil
-	window.availableSpots = make([]AvailableSpot, 0)
+	window.availableSpots = make([]gm.AvailableSpot, 0)
 	for _, sequenceModel := range window.tableSequences {
 		ids := gm.FitSequenceIds(cardModel.srcCard, sequenceModel.sequence)
-		log.Println(ids)
 		window.addNewAvailableSpots(ids, sequenceModel)
 	}
 }
@@ -122,15 +148,20 @@ func (window *Window) addNewAvailableSpots(ids []int, sequenceModel SequenceMode
 	for _, idx := range ids {
 		if idx < 0 {
 			rect := newRect(sequenceModel.firstCardPos.X - SEQUENCE_CARD_WIDTH)
-			availableSpot := NewAvailableSpot(rect, ADD_BEGIN)
+			availableSpot := gm.NewAvailableSpot(
+				rect,
+				gm.ADD_BEGIN,
+				COLOR_HIGHLIGHT_SPOT,
+				*sequenceModel.sequence,
+			)
 			window.availableSpots = append(window.availableSpots, *availableSpot)
 		} else if idx >= len(sequenceModel.cardModels) {
 			rect := newRect(sequenceModel.firstCardPos.X + sequenceModel.GetSize().X)
-			availableSpot := NewAvailableSpot(rect, ADD_END)
+			availableSpot := gm.NewAvailableSpot(rect, gm.ADD_END, COLOR_HIGHLIGHT_SPOT, *sequenceModel.sequence)
 			window.availableSpots = append(window.availableSpots, *availableSpot)
 		} else {
 			rect := newRect(sequenceModel.firstCardPos.X + float32(idx)*SEQUENCE_CARD_WIDTH)
-			availableSpot := NewAvailableSpot(rect, REPLACE_JOKER)
+			availableSpot := gm.NewAvailableSpot(rect, gm.REPLACE_JOKER, COLOR_HIGHLIGHT_SPOT, *sequenceModel.sequence)
 			window.availableSpots = append(window.availableSpots, *availableSpot)
 		}
 	}
@@ -138,5 +169,5 @@ func (window *Window) addNewAvailableSpots(ids []int, sequenceModel SequenceMode
 
 func (window *Window) resetAvailableSpots() {
 	window.availableSpots = nil
-	window.availableSpots = make([]AvailableSpot, 0)
+	window.availableSpots = make([]gm.AvailableSpot, 0)
 }

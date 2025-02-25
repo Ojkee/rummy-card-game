@@ -63,6 +63,16 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 			actionRearrangeCardsMessage.Cards,
 		)
 		return err
+	case cm.UPDATE_TABLE_SEQUNCE:
+		var updateSequenceMessage cm.ActionUpdateTableSequenceMessage
+		json.Unmarshal(actionMsg, &updateSequenceMessage)
+		err := server.handleUpdateSequnces(
+			updateSequenceMessage.ClientId,
+			updateSequenceMessage.SequenceId,
+			updateSequenceMessage.CardIdx,
+			updateSequenceMessage.Card,
+		)
+		return err
 	case cm.UNSUPPORTED:
 	default:
 		return errors.New("Unsupported/Unimplemented Player Action")
@@ -204,4 +214,18 @@ func (server *Server) handleClientMeld(clientId int, sequences [][]*dm.Card) err
 func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error {
 	server.table.Players[clientId].SetHand(cards)
 	return nil
+}
+
+func (server *Server) handleUpdateSequnces(clientId, sequenceId, cardIdx int, card *dm.Card) error {
+	err := server.table.HandleAvailableSpotInSequence(
+		clientId,
+		sequenceId,
+		cardIdx,
+		card,
+	)
+	if err != nil {
+		return nil
+	}
+	err = server.SendStateViewAll()
+	return err
 }

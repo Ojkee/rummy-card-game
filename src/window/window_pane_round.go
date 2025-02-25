@@ -25,6 +25,7 @@ func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 	window.handleDiscardButton(mousePos)
 	window.handleLockSequence(mousePos)
 	window.handleInitialMeldButton(mousePos)
+	window.handleAvailableSpots(mousePos)
 }
 
 func (window *Window) drawInRound() {

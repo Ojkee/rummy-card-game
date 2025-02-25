@@ -10,17 +10,36 @@ const (
 	SEQUENCE_PURE
 )
 
-type Sequence struct {
-	TableCards      []*dm.Card         `json:"table_cards"`
-	Type            SEQUENCE_TYPE      `json:"type"`
-	JokerImitations map[string]dm.Card `json:"joker_imitations"`
+type JokerImitation struct {
+	Idx  int      `json:"idx"`
+	Card *dm.Card `json:"imit_card"`
 }
 
-func NewSequence(cards []*dm.Card, sequenceType SEQUENCE_TYPE) *Sequence {
+func NewJokerImitation(idx int, card *dm.Card) *JokerImitation {
+	return &JokerImitation{
+		Idx:  idx,
+		Card: card,
+	}
+}
+
+type Sequence struct {
+	Id              int              `json:"id"`
+	TableCards      []*dm.Card       `json:"table_cards"`
+	Type            SEQUENCE_TYPE    `json:"type"`
+	JokerImitations []JokerImitation `json:"joker_imitations"`
+}
+
+func NewSequence(
+	id int,
+	cards []*dm.Card,
+	sequenceType SEQUENCE_TYPE,
+	jokerImitations []JokerImitation,
+) *Sequence {
 	return &Sequence{
+		Id:              id,
 		TableCards:      cards,
 		Type:            sequenceType,
-		JokerImitations: make(map[string]dm.Card),
+		JokerImitations: jokerImitations,
 	}
 }
 
@@ -33,6 +52,6 @@ func (s *Sequence) GetSuitIfAscending() dm.Suit {
 	return dm.ANY
 }
 
-func (s *Sequence) SetJokerImitations(jokerImitations map[string]dm.Card) {
-	s.JokerImitations = jokerImitations
+func (s *Sequence) GetId() int {
+	return s.Id
 }

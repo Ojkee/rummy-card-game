@@ -3,7 +3,6 @@ package table_manager
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"rummy-card-game/src/connection_messages"
 	dm "rummy-card-game/src/game_logic/deck_manager"
@@ -23,7 +22,8 @@ type Table struct {
 	Players      map[int]*player.Player
 	playerIds    []int
 
-	sequences []gm.Sequence
+	sequences       []gm.Sequence
+	jokerImitations map[int][]gm.JokerImitation // SEQ_ID: JOK_IMITS
 }
 
 func NewTable(minPlayers, maxPlayers int) *Table {
@@ -39,7 +39,8 @@ func NewTable(minPlayers, maxPlayers int) *Table {
 		Players:      make(map[int]*player.Player, 0),
 		playerIds:    make([]int, 0),
 
-		sequences: make([]gm.Sequence, 0),
+		sequences:       make([]gm.Sequence, 0),
+		jokerImitations: make(map[int][]gm.JokerImitation),
 	}
 }
 
@@ -180,18 +181,19 @@ func (table *Table) IsWinner(playerId int) bool {
 }
 
 func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TYPE) {
+	seqId := len(table.sequences)
 	if sequenceType != gm.SEQUENCE_SAME_RANK && gm.ContainsJoker(cards) {
-		sortedCards, jokerImitations := table.sortAscendingSequence(cards)
-		newSequence := *gm.NewSequence(sortedCards, sequenceType)
-		newSequence.SetJokerImitations(jokerImitations)
+		sortedCards, jokImitations := table.sortAscendingSequence(cards)
+		table.jokerImitations[seqId] = jokImitations
+		newSequence := *gm.NewSequence(seqId, sortedCards, sequenceType, jokImitations)
 		table.sequences = append(table.sequences, newSequence)
 	} else {
-		table.sequences = append(table.sequences, *gm.NewSequence(cards, sequenceType))
+		table.sequences = append(table.sequences, *gm.NewSequence(seqId, cards, sequenceType, []gm.JokerImitation{}))
 	}
 }
 
-func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, map[string]dm.Card) {
-	jokerImitations := make(map[string]dm.Card)
+func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.JokerImitation) {
+	jokerImitations := make([]gm.JokerImitation, 0)
 	sortedCards := gm.SortByRank(cards)
 	nextRank := gm.NextRank(sortedCards[0].Rank, true)
 	n := len(sortedCards)
@@ -204,6 +206,7 @@ func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, map[str
 	}
 	for i := 1; i < n; i++ {
 		if sortedCards[i].Rank == dm.JOKER {
+			// TODO: current card add imitation
 			return sortedCards, jokerImitations
 		}
 		if sortedCards[i].Rank != *nextRank {
@@ -212,8 +215,9 @@ func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, map[str
 				sortedCards[j] = sortedCards[j-1]
 			}
 			sortedCards[i] = jokFromEnd
-			jokerImitation := dm.NewCard(suit, *nextRank)
-			jokerImitations[strconv.Itoa(i)] = *jokerImitation
+			imitatedCard := dm.NewCard(suit, *nextRank)
+			jokerImitation := *gm.NewJokerImitation(i, imitatedCard)
+			jokerImitations = append(jokerImitations, jokerImitation)
 		}
 		nextRank = gm.NextRank(*nextRank, false)
 	}
@@ -237,4 +241,60 @@ func (table *Table) filterCard(playerId int, filterCard *dm.Card) {
 		}
 	}
 	table.Players[playerId].SetHand(resultHand)
+}
+
+func (table *Table) HandleAvailableSpotInSequence(
+	playerId, sequenceId, cardIdx int,
+	card *dm.Card,
+) error {
+	if cardIdx < 0 {
+		table.appendBeginSequence(card, sequenceId)
+	} else if cardIdx > len(table.sequences[sequenceId].TableCards) {
+		table.sequences[sequenceId].TableCards = append(
+			table.sequences[sequenceId].TableCards,
+			card,
+		)
+	} else {
+		cardJokIdx, err := table.getCardIdFromJokImitations(sequenceId, card)
+		if err != nil {
+			return err
+		}
+		replaceCard := table.sequences[sequenceId].TableCards[cardJokIdx]
+		table.Players[playerId].Hand = append(table.Players[playerId].Hand, replaceCard)
+		table.sequences[sequenceId].TableCards[cardJokIdx] = card
+		table.filterJokImitation(sequenceId, cardJokIdx)
+	}
+
+	table.filterCard(playerId, card)
+	return nil
+}
+
+func (table *Table) getCardIdFromJokImitations(seqId int, card *dm.Card) (int, error) {
+	jokImits, ok := table.jokerImitations[seqId]
+	if !ok {
+		return -1, errors.New("Sequence to update not found")
+	}
+	for _, jokImit := range jokImits {
+		if *jokImit.Card == *card {
+			return jokImit.Idx, nil
+		}
+	}
+	errMsg := fmt.Sprintf("Card: %v not found in imitations", card)
+	return -1, errors.New(errMsg)
+}
+
+func (table *Table) appendBeginSequence(card *dm.Card, sequenceId int) {
+	newSeq := []*dm.Card{card}
+	newSeq = append(newSeq, table.sequences[sequenceId].TableCards...)
+	table.sequences[sequenceId].TableCards = newSeq
+}
+
+func (table *Table) filterJokImitation(seqId, cardId int) {
+	newJokImits := make([]gm.JokerImitation, 0)
+	for _, jokImit := range table.jokerImitations[seqId] {
+		if jokImit.Idx != cardId {
+			newJokImits = append(newJokImits, jokImit)
+		}
+	}
+	table.jokerImitations[seqId] = newJokImits
 }
