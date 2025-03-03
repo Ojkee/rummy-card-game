@@ -81,8 +81,8 @@ func (window *Window) resetLockedSequencesIds() {
 }
 
 func (window *Window) unlockAllById(seqId int) {
-	for i := 0; i < len(window.playerCards); i++ {
-		if window.playerCards[i].sequenceId == seqId {
+	for i, cardModel := range window.playerCards {
+		if cardModel.sequenceId == seqId {
 			window.playerCards[i].Reset()
 		}
 	}
@@ -99,8 +99,8 @@ func (window *Window) numLockedSequences() int {
 	return lockCounter
 }
 
-func (window *Window) collectLockedSequencesCards() [][]*dm.Card {
-	retVal := make([][]*dm.Card, 0)
+func (window *Window) collectLockedSequencesCards() []*cm.SequenceLocked {
+	retVal := make([]*cm.SequenceLocked, 0)
 	for seqId, isUsed := range window.lockedSequencesIds {
 		if isUsed {
 			cardsInSameSeq := make([]*dm.Card, 0)
@@ -110,7 +110,8 @@ func (window *Window) collectLockedSequencesCards() [][]*dm.Card {
 				}
 			}
 			if len(cardsInSameSeq) > 0 {
-				retVal = append(retVal, cardsInSameSeq)
+				seqLocked := cm.NewSequenceLocked(seqId, cardsInSameSeq)
+				retVal = append(retVal, seqLocked)
 			}
 		}
 	}

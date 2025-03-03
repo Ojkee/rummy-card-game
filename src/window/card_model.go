@@ -65,7 +65,7 @@ func (card *CardModel) MoveX(x float32) {
 func (card *CardModel) Draw() {
 	var selectedOffset float32 = 0
 	if card.isSelected {
-		selectedOffset = -20
+		selectedOffset = -CARD_SELECTED_OFFSET
 	}
 	card.drawFrame(selectedOffset)
 	if card.srcCard == nil {

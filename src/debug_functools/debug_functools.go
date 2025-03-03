@@ -16,5 +16,5 @@ var DEBUG_MODES = map[DEBUG_MODE]bool{
 
 const (
 	SKIP_MELD_HAND_CARDS = 5
-	RESET_SERVER_KEY     = rl.KeyF7
+	RESET_SERVER_KEY     = rl.KeyF4
 )

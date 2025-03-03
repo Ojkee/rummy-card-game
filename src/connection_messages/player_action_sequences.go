@@ -2,17 +2,15 @@ package connection_messages
 
 import (
 	"encoding/json"
-
-	dm "rummy-card-game/src/game_logic/deck_manager"
 )
 
 type ActionMeldMessage struct {
 	ClientMessage
-	ActionType ACTION_TYPE  `json:"action_type"`
-	Sequences  [][]*dm.Card `json:"sequences"`
+	ActionType ACTION_TYPE       `json:"action_type"`
+	Sequences  []*SequenceLocked `json:"sequences"`
 }
 
-func NewActionMeldMessage(clientId int, sequences [][]*dm.Card) *ActionMeldMessage {
+func NewActionMeldMessage(clientId int, sequences []*SequenceLocked) *ActionMeldMessage {
 	return &ActionMeldMessage{
 		ClientMessage: ClientMessage{
 			DefaultMessage: DefaultMessage{

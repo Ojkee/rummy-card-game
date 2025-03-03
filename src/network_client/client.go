@@ -118,6 +118,13 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 				continue
 			}
 			client.gameWindow.PlaceText(gameWindowText.Value)
+		case cm.WRONG_CARDS_HIGHLIGHT:
+			var wrongCardsHighlight cm.WrongCardsHighlight
+			if err = json.Unmarshal(msg, &wrongCardsHighlight); err != nil {
+				log.Println("Err parsing WrongCardsHighlight")
+				continue
+			}
+			client.gameWindow.PlaceWrongCardsHighlight(wrongCardsHighlight.SeqLocked)
 		default:
 			log.Println("Unknown message type")
 		}

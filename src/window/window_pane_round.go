@@ -57,6 +57,7 @@ func (window *Window) drawInRound() {
 	for _, availableSpot := range window.availableSpots {
 		availableSpot.Draw()
 	}
+	window.drawWrongCardsHightlight()
 }
 
 func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
@@ -105,15 +106,19 @@ func (window *Window) drawTurnInfo() {
 }
 
 func (window *Window) drawDisplayText() {
-	if window.displayTime > 0 {
-		rl.DrawTextEx(
-			FONT,
-			window.displayText,
-			rl.NewVector2(10, 30),
-			float32(FONT_SIZE),
-			FONT_SPACING,
-			COLOR_BEIGE,
-		)
-		window.displayTime -= rl.GetFrameTime()
+	if window.displayText.GetDuration() > 0 {
+		window.displayText.Draw()
+		window.displayText.DecrementDuraton(rl.GetFrameTime())
+		window.displayText.UpdateOpacity()
+	}
+}
+
+func (window *Window) drawWrongCardsHightlight() {
+	for i, highlight := range window.wrongCardsHighlight {
+		if highlight.GetDuration() > 0 {
+			highlight.Draw()
+			window.wrongCardsHighlight[i].DecrementDuraton(rl.GetFrameTime())
+			window.wrongCardsHighlight[i].UpdateOpacity()
+		}
 	}
 }

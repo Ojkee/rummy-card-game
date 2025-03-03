@@ -40,8 +40,8 @@ type Window struct {
 	lastDiscardedCard *CardModel
 	drawPile          *DrawPileButton
 
-	displayText string
-	displayTime float32
+	displayText         TextTimeGraphics
+	wrongCardsHighlight []RectTimeGraphics
 
 	lockedSequencesIds map[int]bool
 
@@ -102,6 +102,8 @@ func NewWindow() *Window {
 		discardPile:       nil,
 		lastDiscardedCard: NewCardModel(nil, DISCARD_PILE_POS, false),
 		drawPile:          NewDrawPileButton(),
+
+		wrongCardsHighlight: make([]RectTimeGraphics, 0),
 
 		lockedSequencesIds: _lockedSequencesIds,
 	}
@@ -258,8 +260,30 @@ func (window *Window) UpdateState(sv cm.StateView) {
 }
 
 func (window *Window) PlaceText(text string) {
-	window.displayText = text
-	window.displayTime = TIME_ON_SCREEN
+	window.displayText = *NewTextTimeGraphics(
+		text,
+		TIME_ON_SCREEN,
+		rl.NewVector2(10, 50),
+		COLOR_BEIGE,
+	)
+}
+
+func (window *Window) PlaceWrongCardsHighlight(seqsLocked []*cm.SequenceLocked) {
+	window.wrongCardsHighlight = nil
+	wrongCards := make([]RectTimeGraphics, 0)
+	for _, seqLocked := range seqsLocked {
+		for _, cardModel := range window.playerCards {
+			if seqLocked.SequenceId == cardModel.sequenceId {
+				rect := cardModel.rect
+				rect.Y -= CARD_SELECTED_OFFSET
+				wrongCards = append(
+					wrongCards,
+					*NewRectTimeGraphics(TIME_ON_SCREEN, cardModel.sequenceId, rect, COLOR_HIGHLIGHT_WRONG_CARD),
+				)
+			}
+		}
+	}
+	window.wrongCardsHighlight = wrongCards
 }
 
 func (window *Window) updatePlayerHand(hand []*dm.Card) {

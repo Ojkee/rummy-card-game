@@ -21,17 +21,18 @@ var (
 var TIME_ON_SCREEN float32 = 3.0
 
 var (
-	COLOR_DARK_GRAY        = rl.NewColor(51, 51, 51, 255)
-	COLOR_TAUPE            = rl.NewColor(77, 70, 62, 255)
-	COLOR_WALNUT_BROWN     = rl.NewColor(100, 93, 84, 255)
-	COLOR_BEIGE            = rl.NewColor(255, 248, 231, 255)
-	COLOR_BUTTON_READY     = rl.NewColor(81, 123, 74, 255)
-	COLOR_BUTTON_NOT_READY = rl.NewColor(144, 55, 55, 255)
-	COLOR_LOCK_COLOR_1     = rl.NewColor(255, 0, 127, 255)
-	COLOR_LOCK_COLOR_2     = rl.NewColor(127, 255, 0, 255)
-	COLOR_LOCK_COLOR_3     = rl.NewColor(0, 127, 255, 255)
-	COLOR_LOCK_COLOR_4     = rl.NewColor(255, 128, 255, 255)
-	COLOR_HIGHLIGHT_SPOT   = rl.NewColor(0, 255, 0, 64)
+	COLOR_DARK_GRAY            = rl.NewColor(51, 51, 51, 255)
+	COLOR_TAUPE                = rl.NewColor(77, 70, 62, 255)
+	COLOR_WALNUT_BROWN         = rl.NewColor(100, 93, 84, 255)
+	COLOR_BEIGE                = rl.NewColor(255, 248, 231, 255)
+	COLOR_BUTTON_READY         = rl.NewColor(81, 123, 74, 255)
+	COLOR_BUTTON_NOT_READY     = rl.NewColor(144, 55, 55, 255)
+	COLOR_LOCK_COLOR_1         = rl.NewColor(255, 0, 127, 255)
+	COLOR_LOCK_COLOR_2         = rl.NewColor(127, 255, 0, 255)
+	COLOR_LOCK_COLOR_3         = rl.NewColor(0, 127, 255, 255)
+	COLOR_LOCK_COLOR_4         = rl.NewColor(255, 128, 255, 255)
+	COLOR_HIGHLIGHT_SPOT       = rl.NewColor(0, 255, 0, 255)
+	COLOR_HIGHLIGHT_WRONG_CARD = rl.NewColor(155, 0, 0, 255)
 )
 
 var LOCK_COLORS = map[int]rl.Color{
@@ -57,12 +58,13 @@ const (
 
 // CARDS
 const (
-	CARD_WIDTH        int32 = 48
-	CARD_HEIGHT       int32 = 96
-	CARD_POS_Y        int32 = WINDOW_HEIGHT - CARD_HEIGHT
-	CARD_GAP          int32 = 2
-	CARD_INNER_WIDTH  int32 = CARD_WIDTH - CARD_GAP*2
-	CARD_INNER_HEIGHT int32 = CARD_HEIGHT - CARD_GAP*2
+	CARD_WIDTH           int32   = 48
+	CARD_HEIGHT          int32   = 96
+	CARD_POS_Y           int32   = WINDOW_HEIGHT - CARD_HEIGHT
+	CARD_GAP             int32   = 2
+	CARD_INNER_WIDTH     int32   = CARD_WIDTH - CARD_GAP*2
+	CARD_INNER_HEIGHT    int32   = CARD_HEIGHT - CARD_GAP*2
+	CARD_SELECTED_OFFSET float32 = 20
 )
 
 const (

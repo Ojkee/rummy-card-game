@@ -161,27 +161,25 @@ func (server *Server) sendWindowMessage(clientId int, textMsg string) error {
 	return nil
 }
 
-func (server *Server) handleClientMeld(clientId int, sequences [][]*dm.Card) error {
+func (server *Server) handleClientMeld(clientId int, sequences []*cm.SequenceLocked) error {
 	isPurePresent := false
 	sumPoints := 0
 	numCards := 0
-	for _, sequence := range sequences {
+	wrongSeqs := make([]*cm.SequenceLocked, 0)
+	for _, sequenceLocked := range sequences {
+		sequence := sequenceLocked.Cards
 		if !gm.AreBuildingSequence(sequence) {
-			errMsg := fmt.Sprintf(
-				"At least one combination doesn't make sequence: %v",
-				sequence,
-			)
-			err := server.sendWindowMessage(
-				clientId,
-				errMsg,
-			)
-			return err
+			wrongSeqs = append(wrongSeqs, sequenceLocked)
 		}
 		if gm.IsPureSequence(sequence) {
 			isPurePresent = true
 		}
 		sumPoints += gm.SequencePoints(sequence)
 		numCards += len(sequence)
+	}
+	if len(wrongSeqs) > 0 {
+		err := server.sendWrongCardsInfo(clientId, wrongSeqs)
+		return err
 	}
 	if !isPurePresent && !server.clients[clientId].hasMelded {
 		err := server.sendWindowMessage(clientId, "You need at least one Pure sequence")
@@ -194,8 +192,9 @@ func (server *Server) handleClientMeld(clientId int, sequences [][]*dm.Card) err
 		err := server.sendWindowMessage(clientId, "You need to place last card to discard pile")
 		return err
 	}
-	for _, sequence := range sequences {
+	for _, sequenceLocked := range sequences {
 		var sequenceType gm.SEQUENCE_TYPE
+		sequence := sequenceLocked.Cards
 		if gm.IsPureSequence(sequence) {
 			sequenceType = gm.SEQUENCE_PURE
 		} else if gm.IsAscendingSequence(sequence) {
@@ -209,6 +208,23 @@ func (server *Server) handleClientMeld(clientId int, sequences [][]*dm.Card) err
 	server.clients[clientId].hasMelded = true
 	err := server.SendStateViewAll()
 	return err
+}
+
+func (server *Server) sendWrongCardsInfo(clientId int, sequences []*cm.SequenceLocked) error {
+	err := server.sendWindowMessage(
+		clientId,
+		"At least one combination doesn't make sequence",
+	)
+	if err != nil {
+		return err
+	}
+	wrongCardsHilight := cm.NewWrongCardsHighlight(sequences)
+	msg, err := wrongCardsHilight.Json()
+	if err != nil {
+		return err
+	}
+	server.clients[clientId].conn.WriteMessage(websocket.TextMessage, msg)
+	return nil
 }
 
 func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error {
