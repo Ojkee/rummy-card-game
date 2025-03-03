@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"rummy-card-game/src/connection_messages"
+	df "rummy-card-game/src/debug_functools"
 	dm "rummy-card-game/src/game_logic/deck_manager"
 	gm "rummy-card-game/src/game_logic/game_manager"
 	"rummy-card-game/src/game_logic/player"
@@ -44,6 +45,17 @@ func NewTable(minPlayers, maxPlayers int) *Table {
 	}
 }
 
+func (table *Table) Reset() {
+	table.turnIdx = 0
+	table.TemplateDeck = *dm.NewDeck()
+	table.DrawPile = *dm.NewCardQueue()
+	table.DiscardPile = *dm.NewCardQueue()
+	table.sequences = nil
+	table.sequences = make([]gm.Sequence, 0)
+	table.jokerImitations = nil
+	table.jokerImitations = make(map[int][]gm.JokerImitation)
+}
+
 func (table *Table) InitNewGame() {
 	table.shuffleInitDrawPile()
 	table.dealCards()
@@ -66,11 +78,11 @@ func (table *Table) shuffleInitDrawPile() {
 			_drawPile = append(_drawPile, &card)
 		}
 	}
-	if DEBUG_MODES[MELD_HAND_START] {
-		skipped := _drawPile[SKIP_MELD_HAND_CARDS:]
+	if df.DEBUG_MODES[df.MELD_HAND_START] {
+		skipped := _drawPile[df.SKIP_MELD_HAND_CARDS:]
 		n := len(_drawPile)
-		_drawPile = append(_drawPile[:n-SKIP_MELD_HAND_CARDS], skipped...)
-		table.DrawPile.Extend(_drawPile[SKIP_MELD_HAND_CARDS:])
+		_drawPile = append(_drawPile[:n-df.SKIP_MELD_HAND_CARDS], skipped...)
+		table.DrawPile.Extend(_drawPile[df.SKIP_MELD_HAND_CARDS:])
 	} else {
 		table.DrawPile.ShuffleExtend(_drawPile)
 	}
@@ -193,9 +205,10 @@ func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TY
 }
 
 func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.JokerImitation) {
+	// TODO: jok 1st in seq throws err
 	jokerImitations := make([]gm.JokerImitation, 0)
 	sortedCards := gm.SortByRank(cards)
-	nextRank := gm.NextRank(sortedCards[0].Rank, true)
+	nextRank := gm.NextRank(sortedCards[0].Rank, false)
 	n := len(sortedCards)
 	var suit dm.Suit
 	for _, card := range sortedCards {
@@ -305,5 +318,6 @@ func (table *Table) updateJokerImitation(seqId int) {
 	oldSeqCards := table.sequences[seqId].TableCards
 	newSeqCards, imitations := table.sortAscendingSequence(oldSeqCards)
 	table.sequences[seqId].TableCards = newSeqCards
+	table.sequences[seqId].JokerImitations = imitations
 	table.jokerImitations[seqId] = imitations
 }

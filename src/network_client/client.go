@@ -52,6 +52,7 @@ func (client *Client) Connect() {
 
 	client.gameWindow.SetOnReadyCallback(client.sendOnReady)
 	client.gameWindow.SetActionMessageCallback(client.sendActionMessage)
+	client.gameWindow.SetDebugMessageCallback(client.sendDebugMessage)
 
 	go client.readFromServer(conn)
 	client.gameWindow.MainLoop()
@@ -139,7 +140,19 @@ func (client *Client) sendOnReady(readyState bool) {
 func (client *Client) sendActionMessage(actionMsg cm.ActionMessage) {
 	msg, err := actionMsg.Json()
 	if err != nil {
-		log.Println("Err draw action json")
+		log.Println("Err action message json")
+		return
+	}
+	client.conn.WriteMessage(
+		websocket.TextMessage,
+		msg,
+	)
+}
+
+func (client *Client) sendDebugMessage(debugMsg cm.DebugMessage) {
+	msg, err := debugMsg.Json()
+	if err != nil {
+		log.Println("Err debug message json")
 		return
 	}
 	client.conn.WriteMessage(

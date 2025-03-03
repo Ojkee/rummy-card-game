@@ -115,6 +115,12 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 			var readyMessage cm.ReadyMessage
 			json.Unmarshal(msg, &readyMessage)
 			server.manageReadinessStates(readyMessage.ClientId, readyMessage.IsReady)
+		case cm.DEBUG_MESSAGE:
+			err = server.handleClientDebug(msg)
+			if err != nil {
+				log.Println(err)
+				break
+			}
 		default:
 			continue
 		}
@@ -228,4 +234,12 @@ func (server *Server) SendStateViewAll() error {
 		}
 	}
 	return nil
+}
+
+func (server *Server) resetClients() {
+	for i, conn := range server.clients {
+		if conn != nil {
+			server.clients[i].Reset()
+		}
+	}
 }

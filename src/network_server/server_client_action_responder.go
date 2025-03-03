@@ -73,7 +73,7 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 			updateSequenceMessage.Card,
 		)
 		return err
-	case cm.UNSUPPORTED:
+	case cm.ACTION_UNSUPPORTED:
 	default:
 		return errors.New("Unsupported/Unimplemented Player Action")
 	}
@@ -85,7 +85,7 @@ func (server *Server) DecodeActionType(actionMsg []byte) (cm.ACTION_TYPE, error)
 		ActionType cm.ACTION_TYPE `json:"action_type"`
 	}
 	if err := json.Unmarshal(actionMsg, &baseMsg); err != nil {
-		return cm.UNSUPPORTED, err
+		return cm.ACTION_UNSUPPORTED, err
 	}
 	return baseMsg.ActionType, nil
 }
@@ -228,4 +228,35 @@ func (server *Server) handleUpdateSequnces(clientId, sequenceId, cardIdx int, ca
 	}
 	err = server.SendStateViewAll()
 	return err
+}
+
+func (server *Server) handleClientDebug(debugMsg []byte) error {
+	debugType, err := server.DecodeDebugType(debugMsg)
+	if err != nil {
+		return err
+	}
+	switch debugType {
+	case cm.DEBUG_RESET:
+		server.mu.Lock()
+		defer server.mu.Unlock()
+		server.resetClients()
+		server.table.Reset()
+		server.table.InitNewGame()
+		server.SendStateViewAll()
+		break
+	case cm.DEBUG_UNSUPPORTED:
+	default:
+		return errors.New("Unsupported/Unimplemented Debug Message")
+	}
+	return nil
+}
+
+func (server *Server) DecodeDebugType(actionMsg []byte) (cm.DEBUG_MESSAGE_TYPE, error) {
+	var baseMsg struct {
+		DebugType cm.DEBUG_MESSAGE_TYPE `json:"debug_type"`
+	}
+	if err := json.Unmarshal(actionMsg, &baseMsg); err != nil {
+		return cm.DEBUG_UNSUPPORTED, err
+	}
+	return baseMsg.DebugType, nil
 }

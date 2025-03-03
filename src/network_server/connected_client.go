@@ -23,3 +23,8 @@ func NewConnectedClient(conn *websocket.Conn) *ConnectedClient {
 func (cc *ConnectedClient) AfterRoundReset() {
 	cc.drawnCard = false
 }
+
+func (cc *ConnectedClient) Reset() {
+	cc.drawnCard = false
+	cc.hasMelded = false
+}

@@ -6,6 +6,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
+	df "rummy-card-game/src/debug_functools"
 	dm "rummy-card-game/src/game_logic/deck_manager"
 	gm "rummy-card-game/src/game_logic/game_manager"
 )
@@ -16,6 +17,7 @@ type Window struct {
 
 	onReadyCallback    func(bool)
 	sendActionCallback func(cm.ActionMessage)
+	sendDebugCallback  func(cm.DebugMessage)
 
 	readyButton       FuncButton
 	discardButton     FuncButton
@@ -146,6 +148,12 @@ func (window *Window) checkEvent() {
 		window.rearrangeNewCardPosX()
 		window.currentDragCardIdx = -1
 	}
+
+	if df.DEBUG_MODES[df.RESET_SERVER] {
+		if rl.IsKeyPressed(df.RESET_SERVER_KEY) {
+			window.sendDebugCallback(cm.NewResetGameMessage())
+		}
+	}
 }
 
 func (window *Window) draw() {
@@ -212,6 +220,10 @@ func (window *Window) SetOnReadyCallback(onReady func(bool)) {
 
 func (window *Window) SetActionMessageCallback(sendAction func(cm.ActionMessage)) {
 	window.sendActionCallback = sendAction
+}
+
+func (window *Window) SetDebugMessageCallback(sendDebug func(cm.DebugMessage)) {
+	window.sendDebugCallback = sendDebug
 }
 
 func (window *Window) SetClientId(id int) {
@@ -284,6 +296,7 @@ func (window *Window) updateTableSequences(sequences []gm.Sequence) {
 		)
 		tableSequencesNew = append(tableSequencesNew, *sequenceModel)
 	}
+	window.tableSequences = nil
 	window.tableSequences = tableSequencesNew
 }
 
