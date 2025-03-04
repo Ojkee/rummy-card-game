@@ -21,6 +21,7 @@
 - [x] Reset table client call
 
 ### Extra features 
+- [x] Wrong cards sequence candidate UI
 - [ ] Chat
 - [ ] Nicer UI
 - [ ] Fast emulation using 4 bots with data gathering
@@ -36,9 +37,9 @@
 - [x] Meld button doesn't disappear after meld
 - [ ] Append begin/end if first/last is joker
 - [x] Joker appends to the end of sequence after Ace
-- [ ] After clicking meld when lock seqs don't meet requirements restarts lock color and messes locks
+- [x] After clicking meld when lock seqs don't meet requirements restarts lock color and messes locks
 - [x] Replacing needs better refresh of jokImitation when appending first card
-- [ ] Player shouldn't append last card on hand to table sequence
+- [x] Player shouldn't append last card on hand to table sequence
 - [x] Available spot rect should update after appending new card to seq
 - [ ] Can't appent joker to the beggining
 

@@ -50,10 +50,6 @@ type Window struct {
 }
 
 func NewWindow() *Window {
-	_lockedSequencesIds := make(map[int]bool)
-	for i := range MAX_LOCKS {
-		_lockedSequencesIds[i] = false
-	}
 	return &Window{
 		mu: sync.Mutex{},
 
@@ -105,8 +101,16 @@ func NewWindow() *Window {
 
 		wrongCardsHighlight: make([]RectTimeGraphics, 0),
 
-		lockedSequencesIds: _lockedSequencesIds,
+		lockedSequencesIds: initLockSeqMap(),
 	}
+}
+
+func initLockSeqMap() map[int]bool {
+	lockedSequencesIds := make(map[int]bool)
+	for i := range MAX_LOCKS {
+		lockedSequencesIds[i] = false
+	}
+	return lockedSequencesIds
 }
 
 func (window *Window) MainLoop() {
@@ -249,14 +253,13 @@ func (window *Window) Stop() {
 func (window *Window) UpdateState(sv cm.StateView) {
 	window.mu.Lock()
 	defer window.mu.Unlock()
+	window.flushCache()
 
 	window.updatePlayerHand(sv.PlayerEntity.Hand)
 	window.discardPile = sv.DiscardPile
 	window.updateLastDiscardedCard(window.discardPile.SeekBack())
 	window.currentTurnId = sv.TurnPlayerId
 	window.updateTableSequences(sv.TableSequences)
-	window.availableSpots = nil
-	window.availableSpots = make([]gm.AvailableSpot, 0)
 }
 
 func (window *Window) PlaceText(text string) {
@@ -367,4 +370,9 @@ func (window *Window) handleMouseDrag(mousePos *rl.Vector2) {
 	default:
 		break
 	}
+}
+
+func (window *Window) flushCache() {
+	window.resetAvailableSpots()
+	window.resetLockedSequencesIds()
 }

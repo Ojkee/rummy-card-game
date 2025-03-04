@@ -67,7 +67,7 @@ func (window *Window) handleCardClicked(mousePos *rl.Vector2) {
 			if window.playerCards[i].sequenceId != -1 {
 				window.unlockAllById(window.playerCards[i].sequenceId)
 			}
-			if card := window.getCardIfOneSelected(); card != nil {
+			if card := window.getCardIfOneSelected(); card != nil && len(window.playerCards) != 1 {
 				window.initAvailableSpots(card)
 			} else {
 				window.resetAvailableSpots()

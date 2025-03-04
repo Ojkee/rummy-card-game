@@ -31,7 +31,7 @@ var (
 	COLOR_LOCK_COLOR_2         = rl.NewColor(127, 255, 0, 255)
 	COLOR_LOCK_COLOR_3         = rl.NewColor(0, 127, 255, 255)
 	COLOR_LOCK_COLOR_4         = rl.NewColor(255, 128, 255, 255)
-	COLOR_HIGHLIGHT_SPOT       = rl.NewColor(0, 255, 0, 255)
+	COLOR_HIGHLIGHT_SPOT       = rl.NewColor(0, 255, 0, 64)
 	COLOR_HIGHLIGHT_WRONG_CARD = rl.NewColor(155, 0, 0, 255)
 )
 

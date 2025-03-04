@@ -1,7 +1,6 @@
 package window
 
 import (
-	"log"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -29,7 +28,6 @@ func (tg *timeGraphics) UpdateOpacity() {
 		return math.Pow(x, 3)
 	}
 	ratio := f(float64(tg.duration / tg.startDuration))
-	log.Println(ratio)
 	opacity := uint8(ratio * 255.0)
 	tg.color.A = opacity
 }

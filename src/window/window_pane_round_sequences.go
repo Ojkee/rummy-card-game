@@ -132,12 +132,12 @@ func (window *Window) initAvailableSpots(cardModel *CardModel) {
 	window.availableSpots = nil
 	window.availableSpots = make([]gm.AvailableSpot, 0)
 	for _, sequenceModel := range window.tableSequences {
-		ids := gm.FitSequenceIds(cardModel.srcCard, sequenceModel.sequence)
-		window.addNewAvailableSpots(ids, sequenceModel)
+		spotIdxs := gm.FitSequenceIds(cardModel.srcCard, sequenceModel.sequence)
+		window.addNewAvailableSpots(spotIdxs, sequenceModel)
 	}
 }
 
-func (window *Window) addNewAvailableSpots(ids []int, sequenceModel SequenceModel) {
+func (window *Window) addNewAvailableSpots(idxs []int, sequenceModel SequenceModel) {
 	newRect := func(x float32) rl.Rectangle {
 		return rl.NewRectangle(
 			x,
@@ -146,7 +146,7 @@ func (window *Window) addNewAvailableSpots(ids []int, sequenceModel SequenceMode
 			SEQUENCE_CARD_HEIGHT,
 		)
 	}
-	for _, idx := range ids {
+	for _, idx := range idxs {
 		if idx < 0 {
 			rect := newRect(sequenceModel.firstCardPos.X - SEQUENCE_CARD_WIDTH)
 			availableSpot := gm.NewAvailableSpot(
