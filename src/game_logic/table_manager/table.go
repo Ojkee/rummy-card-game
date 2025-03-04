@@ -205,7 +205,7 @@ func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TY
 }
 
 func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.JokerImitation) {
-	// TODO: jok 1st in seq throws err
+	// TODO: fix joker at the begging throws err
 	jokerImitations := make([]gm.JokerImitation, 0)
 	sortedCards := gm.SortByRank(cards)
 	nextRank := gm.NextRank(sortedCards[0].Rank, false)
