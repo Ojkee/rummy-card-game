@@ -56,16 +56,28 @@ Each turn consists of (order required):
 ![ExJok](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seq10JJok.png)
 ![ExJok2](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqJok10J.png)
 
-- **Placement** Its not required to set cards in hand into sequences to lock and meld, but if joker appears to be first in ascending sequence, it is considered to be lowest cards
+- **Placement** Its not required to set cards in hand into sequences to lock and meld, but if joker appears to be first in ascending sequence, it is considered to be the lowest card
 ![ExOrder](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqDistantShuffle.png)
 
-### Scoring
+## Initial Meld
+
+Player needs to meet following requirements to meld sequences into table:
+
+- At least one Pure sequence - three or more ascending cards without joker - If joker appears to be 4th or later, it still counts as Pure.
+- Posses at least 51 points from locked sequences (scoring appears in later paragraph).
+
+After player melds first time
+- it is possible to meld any type of sequence.
+- can draw directly from discard pile.
+- can add more cards to existing sequences or replace joker on table.
+
+## Scoring
 - **Face cards (K, Q, J):** 10 points each.
 - **Number cards:** Face value.
 - **Ace:** 1 or 11 points.
 - **Joker:** 0 points.
 
-### Winning
+## Winning
 - The first player to arrange all their cards into valid melds wins.
 
 ---

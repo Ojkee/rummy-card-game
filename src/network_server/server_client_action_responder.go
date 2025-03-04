@@ -233,6 +233,10 @@ func (server *Server) handleRearrangeCards(clientId int, cards []*dm.Card) error
 }
 
 func (server *Server) handleUpdateSequnces(clientId, sequenceId, cardIdx int, card *dm.Card) error {
+	if !server.clients[clientId].hasMelded {
+		err := server.sendWindowMessage(clientId, "You need to meld first to do that")
+		return err
+	}
 	err := server.table.HandleAvailableSpotInSequence(
 		clientId,
 		sequenceId,

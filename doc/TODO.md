@@ -12,9 +12,7 @@
 - [ ] Dragging a sequence into another to get a joker/merge  
 - [ ] Handling reshuffle when the draw pile gets empty  
 
-### Further work  
-- [ ] AI Bots
-- [ ] Other players' number of cards should be visible  
+### Further work  - [ ] AI Bots [ ] Other players' number of cards should be visible  
 
 ### Debug mode  
 - [x] Meld-ready draw  
@@ -46,5 +44,5 @@
 ### FIX PLEASE  
 - [ ] Ascending sequence ACE -> TWO -> THREE doesn't work
 - [ ] Rearranging sequences or drawing a card shouldn't unlock sequences in hand
-
+- [ ] Rearranging sequences on hand within other player turn shouldn't show 'not your turn' message
 
