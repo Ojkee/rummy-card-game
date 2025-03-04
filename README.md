@@ -46,6 +46,7 @@ Each turn consists of (order required):
 - **Sets:** Three or four cards of the same rank but different suits.  
 #### Valid
 ![ExSuit](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqSuit.png)
+![ExSuitJok](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqSuitJok.png)
 ![ExSuitFull](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqSuitFull.png)
 ![ExSuitFullJok](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqSuitFullJok.png)
 #### Wrong
@@ -54,6 +55,9 @@ Each turn consists of (order required):
 - **Jokers:** Can substitute any missing card in a meld.
 ![ExJok](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seq10JJok.png)
 ![ExJok2](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqJok10J.png)
+
+- **Placement** Its not required to set cards in hand into sequences to lock and meld, but if joker appears to be first in ascending sequence, it is considered to be lowest cards
+![ExOrder](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqDistantShuffle.png)
 
 ### Scoring
 - **Face cards (K, Q, J):** 10 points each.
