@@ -41,6 +41,7 @@ func IsSameRankSequence(cards []*dm.Card) bool {
 	return true
 }
 
+// TODO: possible fix with num jokers at the beggining
 func IsAscendingSequence(cards []*dm.Card) bool {
 	sortedCards := SortByRank(cards)
 	targetSuit := sortedCards[0].Suit
@@ -99,12 +100,23 @@ func SortByRank(cards []*dm.Card) []*dm.Card {
 	return cards
 }
 
-func NextRank(rank dm.Rank, isFirst bool) *dm.Rank {
-	if rank == dm.ACE && !isFirst {
+func PrevRank(rank dm.Rank, isFirst bool) *dm.Rank {
+	if rank == dm.TWO {
+		prevRank := dm.ACE
+		return &prevRank
+	} else if (isFirst && rank == dm.ACE) || rank == dm.JOKER {
 		return nil
-	} else if rank == dm.ACE {
+	}
+	prev, _ := dm.RankOfInt(int(rank - 1))
+	return &prev
+}
+
+func NextRank(rank dm.Rank, isFirst bool) *dm.Rank {
+	if rank == dm.ACE && isFirst {
 		next := dm.TWO
 		return &next
+	} else if rank == dm.ACE {
+		return nil
 	}
 	next, _ := dm.RankOfInt(int(rank + 1))
 	return &next

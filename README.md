@@ -1,5 +1,6 @@
 # Rummy card game 
 
+![Logo](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/whysoseriouslogo.png)
 Learning websocket programming with Go. 
 
 
@@ -53,6 +54,7 @@ Each turn consists of (order required):
 ![ExWrongSuit](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqWrongSuitFull.png)
 ![ExWrongSuit](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqWrongSuit.png)
 - **Jokers:** Can substitute any missing card in a meld.
+#### Valid
 ![ExJok](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seq10JJok.png)
 ![ExJok2](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/seqJok10J.png)
 

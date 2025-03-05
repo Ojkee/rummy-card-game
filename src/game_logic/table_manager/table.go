@@ -3,6 +3,7 @@ package table_manager
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"rummy-card-game/src/connection_messages"
 	df "rummy-card-game/src/debug_functools"
@@ -204,38 +205,133 @@ func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TY
 	}
 }
 
+// TODO: WHEN JOK 1ST, THEN IT COUNTS AS LOWEST CARD
+// assume it is propper ascending sequence
 func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.JokerImitation) {
-	// TODO: fix joker at the begging throws err
-	jokerImitations := make([]gm.JokerImitation, 0)
+	jokerPositions := getJokerPositions(cards)
+	numJokers := len(jokerPositions)
 	sortedCards := gm.SortByRank(cards)
-	nextRank := gm.NextRank(sortedCards[0].Rank, false)
-	n := len(sortedCards)
-	var suit dm.Suit
-	for _, card := range sortedCards {
-		if card.Suit != dm.ANY {
-			suit = card.Suit
-			break
+	jokerImitations := make([]gm.JokerImitation, 0)
+	if numJokers == 0 {
+		return sortedCards, jokerImitations
+	}
+
+	numFirstJokers := getNumJokerFirstPositions(jokerPositions)
+	numCanFitBefore := int(sortedCards[0].Rank) + 1 // iota starts from: TWO = 0
+
+	sortFilterCards := filterJoks(sortedCards)
+	fillCards := insertJokers(sortFilterCards)
+
+	allJoksLeft := numJokers - (len(fillCards) - len(sortFilterCards))
+	numBegin := slices.Min([]int{allJoksLeft, numFirstJokers, numCanFitBefore})
+
+	filledBeginGapsCards := appendJoksBeggining(fillCards, numBegin)
+	allJoksLeft -= numBegin
+	allFilledCards := appendLastJoks(filledBeginGapsCards, allJoksLeft)
+	jokerImitations = getImitationsFromSorted(allFilledCards)
+	return allFilledCards, jokerImitations
+}
+
+func filterJoks(cards []*dm.Card) []*dm.Card {
+	retVal := make([]*dm.Card, 0)
+	for _, card := range cards {
+		if card.Rank != dm.JOKER {
+			retVal = append(retVal, card)
 		}
 	}
-	for i := 1; i < n; i++ {
-		if sortedCards[i].Rank == dm.JOKER {
-			imitatedCard := dm.NewCard(suit, *nextRank)
-			jokerImitation := *gm.NewJokerImitation(i, imitatedCard)
-			jokerImitations = append(jokerImitations, jokerImitation)
-		}
-		if sortedCards[i].Rank != *nextRank {
-			jokFromEnd := sortedCards[n-1]
-			for j := n - 1; j > i; j-- {
-				sortedCards[j] = sortedCards[j-1]
-			}
-			sortedCards[i] = jokFromEnd
-			imitatedCard := dm.NewCard(suit, *nextRank)
-			jokerImitation := *gm.NewJokerImitation(i, imitatedCard)
-			jokerImitations = append(jokerImitations, jokerImitation)
+	return retVal
+}
+
+func insertJokers(filteredCards []*dm.Card) []*dm.Card {
+	nextRank := gm.NextRank(filteredCards[0].Rank, true)
+	for i := 1; i < len(filteredCards); i++ {
+		if filteredCards[i].Rank != *nextRank {
+			filteredCards = insert(filteredCards, dm.NewCard(dm.ANY, dm.JOKER), i)
 		}
 		nextRank = gm.NextRank(*nextRank, false)
 	}
-	return sortedCards, jokerImitations
+	return filteredCards
+}
+
+func getJokerPositions(cards []*dm.Card) []int {
+	jokerPositions := make([]int, 0)
+	for i, card := range cards {
+		if card.Rank == dm.JOKER {
+			jokerPositions = append(jokerPositions, i)
+		}
+	}
+	return jokerPositions
+}
+
+func getNumJokerFirstPositions(jokerPositions []int) int {
+	for i, val := range jokerPositions {
+		if i != val {
+			return i
+		}
+	}
+	return len(jokerPositions)
+}
+
+func prepend[T *dm.Card | gm.JokerImitation](slice []T, v T) []T {
+	return append([]T{v}, slice...)
+}
+
+func insert[T *dm.Card | gm.JokerImitation](slice []T, v T, idx int) []T {
+	return append(slice[:idx], prepend(slice[idx:], v)...)
+}
+
+func appendJoksBeggining(cards []*dm.Card, numJoks int) []*dm.Card {
+	for range numJoks {
+		cards = prepend(cards, dm.NewCard(dm.ANY, dm.JOKER))
+	}
+	return cards
+}
+
+func getImitationsFromSorted(cards []*dm.Card) []gm.JokerImitation {
+	imitations := make([]gm.JokerImitation, 0)
+	lowestCard, lowestIdx := findLowestNonJokCardIdx(cards)
+	lowestRank := &lowestCard.Rank
+	for i := lowestIdx - 1; i >= 0; i-- {
+		lowestRank = gm.PrevRank(*lowestRank, true)
+		imitations = prepend(imitations,
+			*gm.NewJokerImitation(i, dm.NewCard(lowestCard.Suit, *lowestRank)),
+		)
+	}
+	higherRank := &lowestCard.Rank
+	for i := lowestIdx + 1; i < len(cards); i++ {
+		higherRank = gm.NextRank(*higherRank, false)
+		if cards[i].Rank == dm.JOKER {
+			imitations = append(
+				imitations,
+				*gm.NewJokerImitation(i, dm.NewCard(lowestCard.Suit, *higherRank)),
+			)
+		}
+	}
+	return imitations
+}
+
+func findLowestNonJokCardIdx(cards []*dm.Card) (*dm.Card, int) {
+	for i, card := range cards {
+		if card.Rank != dm.JOKER {
+			return card, i
+		}
+	}
+	return nil, -1
+}
+
+func appendLastJoks(cards []*dm.Card, numJoks int) []*dm.Card {
+	lastRank := cards[0].Rank
+	for _, card := range cards {
+		if card.Rank != dm.JOKER {
+			lastRank = card.Rank
+		}
+	}
+	numCanFitAfter := int(dm.ACE) - int(lastRank)
+	numFitAfter := min(numCanFitAfter, numJoks)
+	for range numFitAfter {
+		cards = append(cards, dm.NewCard(dm.ANY, dm.JOKER))
+	}
+	return appendJoksBeggining(cards, numJoks-numFitAfter)
 }
 
 func (table *Table) FilterCards(playerId int, cards []*dm.Card) {
