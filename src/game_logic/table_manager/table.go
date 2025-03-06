@@ -205,8 +205,7 @@ func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TY
 	}
 }
 
-// TODO: WHEN JOK 1ST, THEN IT COUNTS AS LOWEST CARD
-// assume it is propper ascending sequence
+// Assume it is propper ascending sequence
 func (table *Table) sortAscendingSequence(cards []*dm.Card) ([]*dm.Card, []gm.JokerImitation) {
 	jokerPositions := getJokerPositions(cards)
 	numJokers := len(jokerPositions)

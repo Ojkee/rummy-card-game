@@ -17,10 +17,12 @@ const (
 const MIN_POINTS_TO_MELD = 51
 
 func AreBuildingSequence(cards []*dm.Card) bool {
+	cardsCopy := make([]*dm.Card, len(cards))
+	copy(cardsCopy, cards)
 	if len(cards) < 3 {
 		return false
 	}
-	return IsAscendingSequence(cards) || IsSameRankSequence(cards)
+	return IsAscendingSequence(cardsCopy) || IsSameRankSequence(cardsCopy)
 }
 
 func IsSameRankSequence(cards []*dm.Card) bool {
@@ -193,16 +195,27 @@ func canAddBegin(card *dm.Card, sequence *Sequence) bool {
 	if firstCard.Rank != dm.ACE && *nextRank == firstCard.Rank {
 		return true
 	}
+	for _, jokImit := range sequence.JokerImitations {
+		if jokImit.Idx == 0 && jokImit.Card.Rank == *nextRank {
+			return true
+		}
+	}
 	return false
 }
 
 func canAddEnd(card *dm.Card, sequence *Sequence) bool {
+	lastIdx := len(sequence.TableCards) - 1
 	if card.Rank == dm.JOKER {
-		return sequence.TableCards[len(sequence.TableCards)-1].Rank != dm.ACE
+		return sequence.TableCards[lastIdx].Rank != dm.ACE
 	}
-	lastCard := sequence.TableCards[len(sequence.TableCards)-1]
+	lastCard := sequence.TableCards[lastIdx]
 	if lastCard.Rank != dm.ACE && *NextRank(lastCard.Rank, false) == card.Rank {
 		return true
+	}
+	for _, jokImit := range sequence.JokerImitations {
+		if jokImit.Idx == lastIdx && *NextRank(jokImit.Card.Rank, false) == card.Rank {
+			return true
+		}
 	}
 	return false
 }

@@ -12,7 +12,9 @@
 - [ ] Dragging a sequence into another to get a joker/merge  
 - [ ] Handling reshuffle when the draw pile gets empty  
 
-### Further work  - [ ] AI Bots [ ] Other players' number of cards should be visible  
+### Further work  
+- [ ] AI Bots 
+- [ ] Other players' number of cards should be visible  
 
 ### Debug mode  
 - [x] Meld-ready draw  
@@ -38,8 +40,9 @@
 - [x] Replacing needs better refresh of `jokerImitation` when appending the first card  
 - [x] Player shouldn't append the last card in hand to a table sequence  
 - [x] Available spot rectangle should update after appending a new card to the sequence  
-- [ ] Can't append a joker at the beginning  
-- [ ] Append at the beginning/end if the first/last card is a joker  
+- [x] Can't append a joker at the beginning  
+- [x] Append at the beginning/end if the first/last card is a joker  
+- [x] Most left joker placement should appear as lowest ranked card
 
 ### FIX PLEASE  
 - [ ] Ascending sequence ACE -> TWO -> THREE doesn't work
