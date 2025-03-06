@@ -12,7 +12,7 @@ func TestIsSameRankSequence(t *testing.T) {
 		sequence []*dm.Card
 		expected bool
 	}{
-		{
+		{ // 0
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
@@ -20,7 +20,7 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			true,
 		},
-		{
+		{ // 1
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
@@ -28,7 +28,7 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			false,
 		},
-		{
+		{ // 2
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
@@ -36,7 +36,7 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			false,
 		},
-		{
+		{ // 3
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
@@ -45,7 +45,7 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			true,
 		},
-		{
+		{ // 4
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
@@ -55,7 +55,7 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			false,
 		},
-		{
+		{ // 5
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
@@ -63,18 +63,10 @@ func TestIsSameRankSequence(t *testing.T) {
 			},
 			true,
 		},
-		{
+		{ // 6
 			[]*dm.Card{
 				dm.NewCard(dm.DIAMONDS, dm.EIGHT),
 				dm.NewCard(dm.CLUBS, dm.EIGHT),
-				dm.NewCard(dm.ANY, dm.JOKER),
-				dm.NewCard(dm.ANY, dm.JOKER),
-			},
-			true,
-		},
-		{
-			[]*dm.Card{
-				dm.NewCard(dm.ANY, dm.JOKER),
 				dm.NewCard(dm.ANY, dm.JOKER),
 				dm.NewCard(dm.ANY, dm.JOKER),
 			},
@@ -144,14 +136,6 @@ func TestIsSameAscendingSequence(t *testing.T) {
 		},
 		{
 			[]*dm.Card{
-				dm.NewCard(dm.ANY, dm.JOKER),
-				dm.NewCard(dm.ANY, dm.JOKER),
-				dm.NewCard(dm.ANY, dm.JOKER),
-			},
-			true,
-		},
-		{
-			[]*dm.Card{
 				dm.NewCard(dm.CLUBS, dm.THREE),
 				dm.NewCard(dm.ANY, dm.JOKER),
 				dm.NewCard(dm.SPADES, dm.FIVE),
@@ -248,20 +232,58 @@ func TestIsSameAscendingSequence(t *testing.T) {
 			},
 			false,
 		},
-		// {
-		// 	[]*dm.Card{
-		// 		dm.NewCard(dm.CLUBS, dm.ACE),
-		// 		dm.NewCard(dm.CLUBS, dm.TWO),
-		// 		dm.NewCard(dm.CLUBS, dm.THREE),
-		// 	},
-		// 	true,
-		// },
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.CLUBS, dm.ACE),
+				dm.NewCard(dm.CLUBS, dm.TWO),
+				dm.NewCard(dm.CLUBS, dm.THREE),
+			},
+			true,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.CLUBS, dm.ACE),
+				dm.NewCard(dm.CLUBS, dm.JOKER),
+				dm.NewCard(dm.CLUBS, dm.THREE),
+			},
+			true,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.CLUBS, dm.JOKER),
+				dm.NewCard(dm.CLUBS, dm.TWO),
+				dm.NewCard(dm.CLUBS, dm.THREE),
+			},
+			true,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.CLUBS, dm.JOKER),
+				dm.NewCard(dm.CLUBS, dm.THREE),
+				dm.NewCard(dm.CLUBS, dm.TWO),
+			},
+			true,
+		},
+		{
+			[]*dm.Card{
+				dm.NewCard(dm.CLUBS, dm.THREE),
+				dm.NewCard(dm.CLUBS, dm.TWO),
+				dm.NewCard(dm.CLUBS, dm.ACE),
+			},
+			true,
+		},
 	}
 
 	for i, test := range tests {
 		result := gm.IsAscendingSequence(test.sequence)
 		if result != test.expected {
-			t.Errorf("Error in test %d: got %v; want: %v", i, result, test.expected)
+			t.Errorf(
+				"TEST %d:\ninput: %v\n\tgot:  %v\n\twant: %v",
+				i,
+				test.sequence,
+				result,
+				test.expected,
+			)
 		}
 	}
 }

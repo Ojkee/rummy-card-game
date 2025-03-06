@@ -416,3 +416,11 @@ func (table *Table) updateJokerImitation(seqId int) {
 	table.sequences[seqId].JokerImitations = imitations
 	table.jokerImitations[seqId] = imitations
 }
+
+func (table *Table) ManageDrawpile() {
+	if !table.DrawPile.IsEmpty() {
+		return
+	}
+	discardedCards := table.DiscardPile.LeaveOnlyLast()
+	table.DrawPile.ShuffleExtend(discardedCards)
+}

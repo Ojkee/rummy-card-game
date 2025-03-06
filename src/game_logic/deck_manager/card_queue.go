@@ -54,10 +54,17 @@ func (cq *CardQueue) Push(newCard *Card) {
 	cq.Cards = append(cq.Cards, newCard)
 }
 
-func (cq *CardQueue) Empty() bool {
+func (cq *CardQueue) IsEmpty() bool {
 	return cq.Left() == 0
 }
 
 func (cq *CardQueue) Left() int {
 	return len(cq.Cards)
+}
+
+func (cq *CardQueue) LeaveOnlyLast() []*Card {
+	last := cq.PopBack()
+	rest := cq.Cards
+	cq.Cards = []*Card{last}
+	return rest
 }

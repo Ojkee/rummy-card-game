@@ -9,16 +9,16 @@
 - [x] Drawing a card from the discard pile  
 - [x] Replacing a joker with the proper card  
 - [x] Adding cards to existing sequences  
-- [ ] Dragging a sequence into another to get a joker/merge  
-- [ ] Handling reshuffle when the draw pile gets empty  
+- [x] Handling reshuffle when the draw pile gets empty
+- [ ] Dragging a sequence into another to get a joker/merge
 
 ### Further work  
 - [ ] AI Bots 
 - [ ] Other players' number of cards should be visible  
 
 ### Debug mode  
-- [x] Meld-ready draw  
-- [x] Reset table client call  
+- [x] Meld-ready draw
+- [x] Reset table client call
 
 ### Extra features  
 - [x] Wrong card sequence candidate UI  
@@ -28,7 +28,7 @@
 - [ ] Highlight locked cards that don't construct a sequence  
 - [ ] Player can enter a nickname  
 - [ ] End game screen  
-- [ ] Continue playing for 2nd (and so on) places  
+- [ ] Continue playing for 2nd and 3rd places  
 - [ ] Reset table server call  
 
 ## Bugs  
@@ -45,7 +45,7 @@
 - [x] Most left joker placement should appear as lowest ranked card
 
 ### FIX PLEASE  
-- [ ] Ascending sequence ACE -> TWO -> THREE doesn't work
+- [x] Ascending sequence ACE -> TWO -> THREE doesn't work
 - [ ] Rearranging sequences or drawing a card shouldn't unlock sequences in hand
 - [ ] Rearranging sequences on hand within other player turn shouldn't show 'not your turn' message
 

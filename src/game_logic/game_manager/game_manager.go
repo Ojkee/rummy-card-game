@@ -17,12 +17,21 @@ const (
 const MIN_POINTS_TO_MELD = 51
 
 func AreBuildingSequence(cards []*dm.Card) bool {
-	cardsCopy := make([]*dm.Card, len(cards))
-	copy(cardsCopy, cards)
-	if len(cards) < 3 {
+	if allJoks(cards) || len(cards) < 3 {
 		return false
 	}
+	cardsCopy := make([]*dm.Card, len(cards))
+	copy(cardsCopy, cards)
 	return IsAscendingSequence(cardsCopy) || IsSameRankSequence(cardsCopy)
+}
+
+func allJoks(cards []*dm.Card) bool {
+	for _, card := range cards {
+		if card.Rank != dm.JOKER {
+			return false
+		}
+	}
+	return true
 }
 
 func IsSameRankSequence(cards []*dm.Card) bool {
@@ -43,34 +52,97 @@ func IsSameRankSequence(cards []*dm.Card) bool {
 	return true
 }
 
-// TODO: possible fix with num jokers at the beggining
 func IsAscendingSequence(cards []*dm.Card) bool {
-	sortedCards := SortByRank(cards)
-	targetSuit := sortedCards[0].Suit
-	targetRank := NextRank(sortedCards[0].Rank, true)
+	cardsCopy := make([]*dm.Card, len(cards))
+	copy(cardsCopy, cards)
+	sortedCards := SortByRank(cardsCopy)
+	if !areSameSuit(sortedCards) {
+		return false
+	}
+	if len(sortedCards) == 13 {
+		return true
+	}
+	if len(sortedCards) > 13 {
+		return false
+	}
+
+	return isAscendingNonAce(sortedCards) || isAscendingAce(sortedCards)
+}
+
+func isAscendingNonAce(cards []*dm.Card) bool {
+	targetRank := NextRank(cards[0].Rank, false)
 	if targetRank == nil {
 		return false
 	}
-	usedJokers := 0
-	i := 1
-	n := len(sortedCards)
-	for i < n-usedJokers {
-		card := sortedCards[i]
-		if card.Rank == dm.JOKER && len(cards) < 13 {
+	usedJoks := 0
+	for i := 1; i < len(cards)-usedJoks; {
+		if targetRank == nil {
+			if cards[i].Rank != dm.JOKER {
+				return false
+			}
+			return true
+		}
+		if *targetRank != cards[i].Rank {
+			if cards[len(cards)-1-usedJoks].Rank != dm.JOKER {
+				return false
+			} else {
+				usedJoks++
+			}
+		} else {
+			i++
+		}
+		targetRank = NextRank(*targetRank, false)
+	}
+	return true
+}
+
+func isAscendingAce(cards []*dm.Card) bool {
+	if !IsRankPresent(dm.ACE, cards) {
+		return false
+	}
+	targetRank := NextRank(dm.ACE, true)
+	wasAce := false
+	usedJoks := 0
+	for i := 0; i < len(cards)-usedJoks; {
+		if !wasAce && cards[i].Rank == dm.ACE {
+			wasAce = true
 			i++
 			continue
-		} else if targetRank == nil || (card.Suit != targetSuit && card.Suit != dm.ANY) {
+		} else if wasAce && cards[i].Rank == dm.ACE {
 			return false
-		} else if *targetRank != card.Rank {
-			if sortedCards[n-1-usedJokers].Rank == dm.JOKER {
-				targetRank = NextRank(*targetRank, false)
-				usedJokers++
-				continue
+		} else if *targetRank != cards[i].Rank {
+			if cards[len(cards)-1-usedJoks].Rank != dm.JOKER {
+				return false
+			} else {
+				usedJoks++
 			}
-			return false
 		}
 		targetRank = NextRank(*targetRank, false)
 		i++
+	}
+
+	return true
+}
+
+func IsRankPresent(rank dm.Rank, cards []*dm.Card) bool {
+	for _, card := range cards {
+		if card.Rank == rank {
+			return true
+		}
+	}
+	return false
+}
+
+func areSameSuit(cards []*dm.Card) bool {
+	suit := cards[0].Suit
+	if suit == dm.ANY {
+		return false
+	}
+
+	for _, card := range cards {
+		if card.Suit != suit && card.Suit != dm.ANY {
+			return false
+		}
 	}
 	return true
 }

@@ -1,6 +1,8 @@
 # Rummy card game 
 
 ![Logo](https://raw.githubusercontent.com/Ojkee/rummy-card-game/master/doc/imgs/whysoseriouslogo.png)
+
+
 Learning websocket programming with Go. 
 
 

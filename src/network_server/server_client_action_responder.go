@@ -26,8 +26,8 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 		actionType != cm.DRAW_CARD &&
 		!server.clients[clientId].drawnCard {
 
-		server.sendWindowMessage(clientId, "You need to draw card first")
-		return nil
+		err := server.sendWindowMessage(clientId, "You need to draw card first")
+		return err
 	}
 
 	switch actionType {
@@ -108,6 +108,7 @@ func (server *Server) handleClientDrawCard(clientId int, drawSource cm.DRAW_TYPE
 	if drawSource == cm.DRAW_FROM_PILE {
 		server.table.PlayerDrawCard(clientId)
 		server.clients[clientId].drawnCard = true
+		server.table.ManageDrawpile()
 		server.SendStateViewAll()
 		return nil
 	}
