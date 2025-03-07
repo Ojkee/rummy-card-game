@@ -6,5 +6,5 @@ import (
 
 func main() {
 	currentClient := network_client.NewClient()
-	currentClient.Connect()
+	currentClient.RunWindow()
 }

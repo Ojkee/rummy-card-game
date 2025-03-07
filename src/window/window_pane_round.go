@@ -39,7 +39,6 @@ func (window *Window) drawInRound() {
 	}
 	window.lastDiscardedCard.Draw()
 	window.drawPile.Draw()
-	window.drawDisplayText()
 	window.drawTurnInfo()
 	if card := window.getCardIfOneSelected(); card != nil {
 		window.updateDiscardButtonPos()

@@ -4,15 +4,15 @@ import rl "github.com/gen2brain/raylib-go/raylib"
 
 type FuncButton struct {
 	rect    rl.Rectangle
-	color   rl.Color
 	content string
+	color   rl.Color
 }
 
 func NewFuncButton(rect rl.Rectangle, content string) *FuncButton {
 	return &FuncButton{
 		rect:    rect,
-		color:   COLOR_BUTTON_NOT_READY,
 		content: content,
+		color:   COLOR_BUTTON_NOT_READY,
 	}
 }
 
@@ -22,4 +22,8 @@ func (fb *FuncButton) InRect(mousePos *rl.Vector2) bool {
 
 func (fb *FuncButton) UpdateRect(rect *rl.Rectangle) {
 	fb.rect = *rect
+}
+
+func (fb *FuncButton) UpdateContent(newContent string) {
+	fb.content = newContent
 }

@@ -2,6 +2,7 @@ package network_client
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	cm "rummy-card-game/src/connection_messages"
+	gm "rummy-card-game/src/game_logic/game_manager"
 	"rummy-card-game/src/window"
 )
 
@@ -38,23 +40,15 @@ func (client *Client) SetId(id int) {
 	client.gameWindow.SetClientId(id)
 }
 
-func (client *Client) Connect() {
-	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
-	client.conn = conn
-	if err != nil {
-		log.Fatal("Error connecting: ", err)
-	}
-	defer conn.Close()
-	log.Println("Connected!")
-
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
+func (client *Client) RunWindow() {
+	client.gameWindow.SetConnectCallback(client.connect)
 	client.gameWindow.SetOnReadyCallback(client.sendOnReady)
 	client.gameWindow.SetActionMessageCallback(client.sendActionMessage)
 	client.gameWindow.SetDebugMessageCallback(client.sendDebugMessage)
 
-	go client.readFromServer(conn)
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
 	client.gameWindow.MainLoop()
 
 	select {
@@ -63,6 +57,26 @@ func (client *Client) Connect() {
 	case <-client.gameWindow.CloseListener():
 		return
 	}
+}
+
+func (client *Client) connect(enteredIp string) {
+	if enteredIp == "" {
+		enteredIp = "localhost"
+	}
+	wsIp := fmt.Sprintf("ws://%s:8080/ws", enteredIp)
+	conn, _, err := websocket.DefaultDialer.Dial(wsIp, nil)
+	if err != nil {
+		client.gameWindow.PlaceText("Error connecting: " + err.Error())
+		return
+	}
+	client.conn = conn
+	client.gameWindow.PlaceText(fmt.Sprintf("Connected to: '%s'", enteredIp))
+	client.gameWindow.SetGameState(gm.PRE_START)
+
+	go func() {
+		client.readFromServer(conn)
+		conn.Close()
+	}()
 }
 
 func (client *Client) readFromServer(conn *websocket.Conn) {

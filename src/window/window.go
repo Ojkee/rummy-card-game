@@ -15,10 +15,15 @@ type Window struct {
 	mu       sync.Mutex
 	clientId int
 
+	connectCallback    func(string)
 	onReadyCallback    func(bool)
 	sendActionCallback func(cm.ActionMessage)
 	sendDebugCallback  func(cm.DebugMessage)
 
+	enteredIp FuncButton
+	maxIpLen  int
+
+	connectButton     FuncButton
 	readyButton       FuncButton
 	discardButton     FuncButton
 	lockSetButton     FuncButton
@@ -53,6 +58,26 @@ func NewWindow() *Window {
 	return &Window{
 		mu: sync.Mutex{},
 
+		enteredIp: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-ENTER_IP_WIDTH)/2,
+				float32(WINDOW_HEIGHT-ENTER_IP_HEIGHT)/2,
+				ENTER_IP_WIDTH,
+				ENTER_IP_HEIGHT,
+			),
+			"",
+		),
+		maxIpLen: 15,
+
+		connectButton: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
+				float32(WINDOW_HEIGHT)/2+CONNECT_BUTTON_OFFSET,
+				READY_BUTTON_WIDTH,
+				READY_BUTTON_HEIGHT,
+			),
+			"Connect",
+		),
 		readyButton: *NewFuncButton(
 			rl.NewRectangle(
 				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
@@ -88,7 +113,7 @@ func NewWindow() *Window {
 		running:     true,
 		stopChannel: make(chan struct{}),
 		isReady:     false,
-		gameState:   gm.PRE_START,
+		gameState:   gm.PRE_CONNECT,
 
 		isDragging:         false,
 		currentDragCardIdx: -1,
@@ -128,9 +153,11 @@ func (window *Window) MainLoop() {
 }
 
 func (window *Window) checkEvent() {
-	if rl.IsKeyPressed(rl.KeyQ) {
+	if rl.IsKeyPressed(rl.KeyQ) && df.DEBUG_MODES[df.FAST_QUIT] {
 		window.Stop()
 	}
+
+	window.preConnectManagetKeyboardInput()
 
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
@@ -167,6 +194,9 @@ func (window *Window) draw() {
 	rl.ClearBackground(COLOR_DARK_GRAY)
 
 	switch window.gameState {
+	case gm.PRE_CONNECT:
+		window.drawPreConnectPane()
+		break
 	case gm.PRE_START:
 		window.drawWaitingPane()
 		break
@@ -174,6 +204,7 @@ func (window *Window) draw() {
 		window.drawInRound()
 		break
 	}
+	window.drawDisplayText()
 
 	rl.EndDrawing()
 }
@@ -218,6 +249,10 @@ func (window *Window) unloadGraphics() {
 		rl.UnloadImage(image)
 	}
 	rl.UnloadFont(FONT)
+}
+
+func (window *Window) SetConnectCallback(sendConnect func(string)) {
+	window.connectCallback = sendConnect
 }
 
 func (window *Window) SetOnReadyCallback(onReady func(bool)) {
@@ -352,6 +387,8 @@ func (window *Window) drawStaticButton(fbutton *FuncButton) {
 
 func (window *Window) handleMouseClicked(mousePos *rl.Vector2) {
 	switch window.gameState {
+	case gm.PRE_CONNECT:
+		window.preConnectManagerClick(mousePos)
 	case gm.PRE_START:
 		if window.readyButton.InRect(mousePos) {
 			window.toggleReady()

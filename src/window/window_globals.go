@@ -46,6 +46,9 @@ var MAX_LOCKS = len(LOCK_COLORS)
 
 // BUTTONS
 const (
+	ENTER_IP_WIDTH              = 256
+	ENTER_IP_HEIGHT             = 64
+	CONNECT_BUTTON_OFFSET       = 96
 	READY_BUTTON_WIDTH          = 128
 	READY_BUTTON_HEIGHT         = 64
 	IN_GAME_BUTTON_WIDHT        = 128

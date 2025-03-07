@@ -9,7 +9,8 @@ import (
 type GAME_STATE int
 
 const (
-	PRE_START GAME_STATE = iota
+	PRE_CONNECT GAME_STATE = iota
+	PRE_START
 	IN_GAME
 	FINISHED
 )
