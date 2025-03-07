@@ -10,8 +10,8 @@ const (
 )
 
 var DEBUG_MODES = map[DEBUG_MODE]bool{
-	MELD_HAND_START: true,
-	RESET_SERVER:    true,
+	MELD_HAND_START: false,
+	RESET_SERVER:    false,
 }
 
 const (

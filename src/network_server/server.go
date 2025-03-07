@@ -101,11 +101,6 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 
 		switch messageType {
 		case cm.PLAYER_ACTION:
-			decodedClientId, err := cm.DecodeMessageClientId(msg)
-			if decodedClientId != server.table.GetTurnId() {
-				server.sendWindowMessage(decodedClientId, "Not your turn")
-				break
-			}
 			err = server.handleClientAction(msg)
 			if err != nil {
 				log.Println(err)

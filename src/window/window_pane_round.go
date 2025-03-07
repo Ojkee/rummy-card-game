@@ -8,18 +8,18 @@ import (
 
 func (window *Window) inRoundManagerClick(mousePos *rl.Vector2) {
 	if window.drawPile.InRect(mousePos) {
-		actionMsg := cm.NewActionDrawMessage(
+		actionDrawMsg := cm.NewActionDrawMessage(
 			window.clientId,
 			cm.DRAW_FROM_PILE,
 		)
-		window.sendActionCallback(actionMsg)
+		window.sendActionCallback(actionDrawMsg)
 	} else if window.lastDiscardedCard.srcCard != nil &&
 		window.lastDiscardedCard.InRect(*mousePos) {
-		actionMsg := cm.NewActionDrawMessage(
+		actionDrawMsg := cm.NewActionDrawMessage(
 			window.clientId,
 			cm.DRAW_FROM_DISCARD_PILE,
 		)
-		window.sendActionCallback(actionMsg)
+		window.sendActionCallback(actionDrawMsg)
 	}
 	window.handleCardClicked(mousePos)
 	window.handleDiscardButton(mousePos)

@@ -22,6 +22,11 @@ func (server *Server) handleClientAction(actionMsg []byte) error {
 		return err
 	}
 
+	if clientId != server.table.GetTurnId() && actionType != cm.REARRANGE_CARDS {
+		err := server.sendWindowMessage(clientId, "Not your turn")
+		return err
+	}
+
 	if actionType != cm.REARRANGE_CARDS &&
 		actionType != cm.DRAW_CARD &&
 		!server.clients[clientId].drawnCard {

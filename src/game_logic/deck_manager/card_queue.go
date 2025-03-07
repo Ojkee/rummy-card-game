@@ -1,6 +1,8 @@
 package deck_manager
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 type CardQueue struct {
 	Cards []*Card `json:"cards"`
