@@ -10,11 +10,12 @@
 - [x] Replacing a joker with the proper card
 - [x] Adding cards to existing sequences
 - [x] Handling reshuffle when the draw pile gets empty 
+- [ ] `Enter ip` window before connecting
 
 ### Further work
-- [ ] AI Bots
 - [ ] Other players' number of cards should be visible
 - [ ] Dragging a sequence into another to get a joker/merge
+- [ ] AI Bots
 
 ### Debug mode
 - [x] Meld-ready draw
@@ -23,13 +24,13 @@
 ### Extra features
 - [x] Wrong card sequence candidate UI
 - [x] Highlight locked cards that don't construct a sequence
-- [ ] Nicer UI
-- [ ] Fast emulation using 4 bots with data gathering
 - [ ] Player can enter a nickname
 - [ ] End game screen
 - [ ] Continue playing for 2nd and 3rd places
+- [ ] Fast emulation using 4 bots with data gathering
 - [ ] Reset table server call
 - [ ] Chat
+- [ ] Nicer UI
 
 ## Bugs
 ### FIX ASAP
