@@ -97,7 +97,7 @@ func (window *Window) drawTurnInfo() {
 			FONT,
 			"Your turn",
 			rl.NewVector2(10, 10),
-			float32(FONT_SIZE),
+			FONT_SIZE,
 			FONT_SPACING,
 			COLOR_BEIGE,
 		)

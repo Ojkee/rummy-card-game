@@ -38,7 +38,7 @@ func (drawPile *DrawPileButton) Draw() {
 			drawPile.rect.X+(drawPile.rect.Width-drawTextSize.X)/2,
 			drawPile.rect.Y-drawTextSize.Y,
 		),
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)

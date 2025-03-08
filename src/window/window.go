@@ -153,7 +153,7 @@ func (window *Window) MainLoop() {
 }
 
 func (window *Window) checkEvent() {
-	if rl.IsKeyPressed(rl.KeyQ) && df.DEBUG_MODES[df.FAST_QUIT] {
+	if df.DEBUG_MODES[df.FAST_QUIT] && rl.IsKeyPressed(df.QUIT_KEY) {
 		window.Stop()
 	}
 
@@ -212,7 +212,7 @@ func (window *Window) draw() {
 func (window *Window) initGraphics() {
 	window.resizeImages()
 	window.loadImagesMap()
-	FONT = rl.LoadFontEx(FONT_PATH, FONT_SIZE, nil, 96)
+	FONT = rl.LoadFontEx(FONT_PATH, int32(FONT_SIZE), nil, 96)
 }
 
 func (window *Window) resizeImages() {
@@ -379,7 +379,7 @@ func (window *Window) drawStaticButton(fbutton *FuncButton) {
 			fbutton.rect.X+(fbutton.rect.Width-contentSize.X)/2,
 			fbutton.rect.Y+(fbutton.rect.Height-contentSize.Y)/2,
 		),
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)

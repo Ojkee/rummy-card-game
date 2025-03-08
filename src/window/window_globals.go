@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	FONT_SIZE    int32   = 24
+	FONT_SIZE    float32 = 24
 	FONT_SPACING float32 = 2
 	FONT_PATH    string  = "src/window/assets/fonts/Child-Hood.otf"
 	FONT         rl.Font

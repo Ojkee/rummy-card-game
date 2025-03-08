@@ -35,4 +35,22 @@ func (window *Window) preConnectManagerClick(mousePos *rl.Vector2) {
 func (window *Window) drawPreConnectPane() {
 	window.drawStaticButton(&window.connectButton)
 	window.drawStaticButton(&window.enteredIp)
+	window.drawIpInfo()
+}
+
+func (window *Window) drawIpInfo() {
+	info := "Enter ip"
+	infoVec := GetTextVec(info)
+	pos := rl.NewVector2(
+		window.enteredIp.rect.X+(window.enteredIp.rect.Width-infoVec.X)/2,
+		window.enteredIp.rect.Y-infoVec.Y,
+	)
+	rl.DrawTextEx(
+		FONT,
+		info,
+		pos,
+		FONT_SIZE,
+		FONT_SPACING,
+		COLOR_BEIGE,
+	)
 }

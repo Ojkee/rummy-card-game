@@ -10,7 +10,7 @@
 - [x] Replacing a joker with the proper card
 - [x] Adding cards to existing sequences
 - [x] Handling reshuffle when the draw pile gets empty 
-- [ ] `Enter ip` window before connecting
+- [x] `Enter ip` window before connecting
 
 ### Further work
 - [ ] Other players' number of cards should be visible

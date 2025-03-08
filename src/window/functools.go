@@ -5,5 +5,5 @@ import (
 )
 
 func GetTextVec(text string) rl.Vector2 {
-	return rl.MeasureTextEx(FONT, text, float32(FONT_SIZE), FONT_SPACING)
+	return rl.MeasureTextEx(FONT, text, FONT_SIZE, FONT_SPACING)
 }

@@ -40,7 +40,7 @@ func (window *Window) drawReadyState() {
 			window.readyButton.rect.X+(window.readyButton.rect.Width-contentVec.X)/2,
 			window.readyButton.rect.Y+(window.readyButton.rect.Height-contentVec.Y)/2,
 		),
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)
@@ -56,7 +56,7 @@ func (window *Window) drawReadyInfo() {
 			window.readyButton.rect.X+(window.readyButton.rect.Width-infoVec.X)/2,
 			window.readyButton.rect.Y-infoVec.Y,
 		),
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)

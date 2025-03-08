@@ -60,7 +60,7 @@ func (ttg *TextTimeGraphics) Draw() {
 		FONT,
 		ttg.text,
 		ttg.pos,
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		ttg.color,
 	)

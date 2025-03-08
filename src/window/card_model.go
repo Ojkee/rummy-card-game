@@ -131,7 +131,7 @@ func (card *CardModel) drawRank(selectedOffset float32) {
 			card.rect.X+(card.rect.Width-textVec.X)/2,
 			card.rect.Y+(card.rect.Height-textVec.Y)+selectedOffset,
 		),
-		float32(FONT_SIZE),
+		FONT_SIZE,
 		FONT_SPACING,
 		COLOR_BEIGE,
 	)
