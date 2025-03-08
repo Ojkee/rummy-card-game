@@ -2,10 +2,11 @@ package connection_messages
 
 type ReadyMessage struct {
 	ClientMessage
-	IsReady bool `json:"is_ready"`
+	IsReady  bool   `json:"is_ready"`
+	Nickname string `json:"nickname"`
 }
 
-func NewReadyMessage(status bool, ClientId int) *ReadyMessage {
+func NewReadyMessage(status bool, nickname string, ClientId int) *ReadyMessage {
 	return &ReadyMessage{
 		ClientMessage: ClientMessage{
 			DefaultMessage: DefaultMessage{
@@ -13,6 +14,7 @@ func NewReadyMessage(status bool, ClientId int) *ReadyMessage {
 			},
 			ClientId: ClientId,
 		},
-		IsReady: status,
+		IsReady:  status,
+		Nickname: nickname,
 	}
 }

@@ -4,26 +4,11 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func (window *Window) preConnectManagetKeyboardInput() {
-	if isPasteShortcutClicked() {
-		window.pasteFromClipboard(rl.GetClipboardText())
-		return
-	}
-	keyPressed := rl.GetKeyPressed()
-	if keyPressed == rl.KeyBackspace && len(window.enteredIp.content) > 0 {
-		newContent := window.enteredIp.content[:len(window.enteredIp.content)-1]
-		window.enteredIp.UpdateContent(newContent)
-		return
-	} else if keyPressed == rl.KeyEnter {
+func (window *Window) preConnectManageKeyboardInput() {
+	enterPressed := window.keyboardInputStaticButton(&window.enteredIp, window.maxIpLen)
+	if enterPressed {
 		window.connectCallback(window.enteredIp.content)
 		return
-	} else if len(window.enteredIp.content) >= window.maxIpLen {
-		return
-	}
-	charPressed := rl.GetCharPressed()
-	if isValidCharASCII(charPressed) {
-		newContent := window.enteredIp.content + string(charPressed)
-		window.enteredIp.UpdateContent(newContent)
 	}
 }
 
@@ -35,14 +20,14 @@ func isPasteShortcutClicked() bool {
 	return false
 }
 
-func (window *Window) pasteFromClipboard(text string) {
+func (window *Window) pasteFromClipboard(text string, fb *FuncButton) {
 	var filteredText string
 	for _, char := range text {
 		if isValidCharASCII(char) {
 			filteredText += string(char)
 		}
 	}
-	window.enteredIp.UpdateContent(filteredText)
+	fb.UpdateContent(filteredText)
 }
 
 func isValidCharASCII(c int32) bool {

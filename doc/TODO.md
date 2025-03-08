@@ -26,7 +26,7 @@
 - [x] Wrong card sequence candidate UI
 - [x] Highlight locked cards that don't construct a sequence
 - [x] Copy-paste ip mechanism 
-- [ ] Player can enter a nickname 
+- [x] Player can enter a nickname 
 - [ ] Points counter
 - [ ] Turn and connection info
 - [ ] End game screen

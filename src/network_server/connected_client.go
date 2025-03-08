@@ -3,8 +3,9 @@ package network_server
 import "github.com/gorilla/websocket"
 
 type ConnectedClient struct {
-	isReady bool
-	conn    *websocket.Conn
+	isReady  bool
+	nickname string
+	conn     *websocket.Conn
 
 	// in round
 	drawnCard bool

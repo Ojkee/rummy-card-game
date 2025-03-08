@@ -2,6 +2,23 @@ package window
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
+func (window *Window) waitingPaneManageKeyboardInput() {
+	enterPressed := window.keyboardInputStaticButton(&window.enterNickname, window.maxNicknameLen)
+	if window.nickname != window.enterNickname.content {
+		window.lockNickname()
+	}
+	if enterPressed && len(window.enterNickname.content) > 0 {
+		window.toggleReady()
+		return
+	} else if enterPressed && len(window.enterNickname.content) == 0 {
+		window.PlaceText("Enter nickname")
+	}
+}
+
+func (window *Window) lockNickname() {
+	window.nickname = window.enterNickname.content
+}
+
 func (window *Window) toggleReady() {
 	window.isReady = !window.isReady
 	window.onReadyCallback(window.isReady)
@@ -18,6 +35,7 @@ func (window *Window) drawWaitingPane() {
 	window.drawReadyButton()
 	window.drawReadyState()
 	window.drawReadyInfo()
+	window.drawStaticButton(&window.enterNickname)
 }
 
 func (window *Window) drawReadyButton() {

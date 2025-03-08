@@ -23,6 +23,10 @@ type Window struct {
 	enteredIp FuncButton
 	maxIpLen  int
 
+	enterNickname  FuncButton
+	nickname       string
+	maxNicknameLen int
+
 	connectButton     FuncButton
 	readyButton       FuncButton
 	discardButton     FuncButton
@@ -69,6 +73,18 @@ func NewWindow() *Window {
 		),
 		maxIpLen: 15,
 
+		enterNickname: *NewFuncButton(
+			rl.NewRectangle(
+				float32(WINDOW_WIDTH-ENTER_NICKNAME_WIDTH)/2,
+				float32(WINDOW_HEIGHT-ENTER_NICKNAME_HEIGHT)/2,
+				ENTER_IP_WIDTH,
+				ENTER_IP_HEIGHT,
+			),
+			"",
+		),
+		nickname:       "",
+		maxNicknameLen: 24,
+
 		connectButton: *NewFuncButton(
 			rl.NewRectangle(
 				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
@@ -81,7 +97,7 @@ func NewWindow() *Window {
 		readyButton: *NewFuncButton(
 			rl.NewRectangle(
 				float32(WINDOW_WIDTH-READY_BUTTON_WIDTH)/2,
-				float32(WINDOW_HEIGHT-READY_BUTTON_HEIGHT)/2,
+				float32(WINDOW_HEIGHT-READY_BUTTON_HEIGHT)/2+READY_BUTTON_OFFSET,
 				READY_BUTTON_WIDTH,
 				READY_BUTTON_HEIGHT,
 			),
@@ -130,6 +146,10 @@ func NewWindow() *Window {
 	}
 }
 
+func (window *Window) GetNickname() string {
+	return window.nickname
+}
+
 func initLockSeqMap() map[int]bool {
 	lockedSequencesIds := make(map[int]bool)
 	for i := range MAX_LOCKS {
@@ -157,9 +177,7 @@ func (window *Window) checkEvent() {
 		window.Stop()
 	}
 
-	if window.gameState == gm.PRE_CONNECT {
-		window.preConnectManagetKeyboardInput()
-	}
+	window.handleKeyboardInput()
 
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
@@ -409,6 +427,43 @@ func (window *Window) handleMouseDrag(mousePos *rl.Vector2) {
 	default:
 		break
 	}
+}
+
+func (window *Window) handleKeyboardInput() {
+	switch window.gameState {
+	case gm.PRE_CONNECT:
+		window.preConnectManageKeyboardInput()
+		break
+	case gm.PRE_START:
+		window.waitingPaneManageKeyboardInput()
+		break
+	default:
+		break
+	}
+	return
+}
+
+func (window *Window) keyboardInputStaticButton(fb *FuncButton, maxLen int) (enterPressed bool) {
+	if isPasteShortcutClicked() {
+		window.pasteFromClipboard(rl.GetClipboardText(), fb)
+		return false
+	}
+	keyPressed := rl.GetKeyPressed()
+	if keyPressed == rl.KeyBackspace && len(fb.content) > 0 {
+		newContent := fb.content[:len(fb.content)-1]
+		fb.UpdateContent(newContent)
+		return false
+	} else if keyPressed == rl.KeyEnter {
+		return true
+	} else if len(fb.content) >= maxLen {
+		return false
+	}
+	charPressed := rl.GetCharPressed()
+	if isValidCharASCII(charPressed) {
+		newContent := fb.content + string(charPressed)
+		fb.UpdateContent(newContent)
+	}
+	return false
 }
 
 func (window *Window) flushCache() {

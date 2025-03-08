@@ -146,7 +146,9 @@ func (client *Client) readFromServer(conn *websocket.Conn) {
 }
 
 func (client *Client) sendOnReady(readyState bool) {
-	readyMsg, err := json.Marshal(cm.NewReadyMessage(readyState, client.id))
+	readyMsg, err := json.Marshal(
+		cm.NewReadyMessage(readyState, client.gameWindow.GetNickname(), client.id),
+	)
 	if err != nil {
 		log.Println("Err json.Marshal in toggleReady: ", err)
 		return

@@ -109,7 +109,7 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 		case cm.PLAYER_READY:
 			var readyMessage cm.ReadyMessage
 			json.Unmarshal(msg, &readyMessage)
-			server.manageReadinessStates(readyMessage.ClientId, readyMessage.IsReady)
+			server.manageReadinessStates(readyMessage)
 		case cm.DEBUG_MESSAGE:
 			err = server.handleClientDebug(msg)
 			if err != nil {
@@ -122,8 +122,9 @@ func (server *Server) readFromClient(conn *websocket.Conn, playerId int) {
 	}
 }
 
-func (server *Server) manageReadinessStates(clientId int, state bool) {
-	server.clients[clientId].isReady = state
+func (server *Server) manageReadinessStates(readyMsg cm.ReadyMessage) {
+	server.clients[readyMsg.ClientId].isReady = readyMsg.IsReady
+	server.clients[readyMsg.ClientId].nickname = readyMsg.Nickname
 	if server.allReady() {
 		log.Println("ALL READY")
 		for _, client := range server.clients {
