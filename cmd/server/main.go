@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	server := network_server.NewServer(1, 4)
+	server := network_server.NewServer(2, 4)
 	server.Init("8080")
 }
