@@ -5,6 +5,10 @@ import (
 )
 
 func (window *Window) preConnectManagetKeyboardInput() {
+	if isPasteShortcutClicked() {
+		window.pasteFromClipboard(rl.GetClipboardText())
+		return
+	}
 	keyPressed := rl.GetKeyPressed()
 	if keyPressed == rl.KeyBackspace && len(window.enteredIp.content) > 0 {
 		newContent := window.enteredIp.content[:len(window.enteredIp.content)-1]
@@ -16,14 +20,33 @@ func (window *Window) preConnectManagetKeyboardInput() {
 	} else if len(window.enteredIp.content) >= window.maxIpLen {
 		return
 	}
-	isValidChar := func(c int32) bool {
-		return c >= 32 && c <= 126
-	}
 	charPressed := rl.GetCharPressed()
-	if isValidChar(charPressed) {
+	if isValidCharASCII(charPressed) {
 		newContent := window.enteredIp.content + string(charPressed)
 		window.enteredIp.UpdateContent(newContent)
 	}
+}
+
+func isPasteShortcutClicked() bool {
+	if (rl.IsKeyDown(rl.KeyLeftControl) || rl.IsKeyDown(rl.KeyRightControl)) &&
+		rl.IsKeyPressed(rl.KeyV) {
+		return true
+	}
+	return false
+}
+
+func (window *Window) pasteFromClipboard(text string) {
+	var filteredText string
+	for _, char := range text {
+		if isValidCharASCII(char) {
+			filteredText += string(char)
+		}
+	}
+	window.enteredIp.UpdateContent(filteredText)
+}
+
+func isValidCharASCII(c int32) bool {
+	return c >= 32 && c <= 126
 }
 
 func (window *Window) preConnectManagerClick(mousePos *rl.Vector2) {
