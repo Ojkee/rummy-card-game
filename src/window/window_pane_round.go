@@ -57,6 +57,7 @@ func (window *Window) drawInRound() {
 		availableSpot.Draw()
 	}
 	window.drawWrongCardsHightlight()
+	window.drawPointsCounter()
 }
 
 func (window *Window) handleCardClicked(mousePos *rl.Vector2) {

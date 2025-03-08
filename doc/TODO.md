@@ -27,7 +27,7 @@
 - [x] Highlight locked cards that don't construct a sequence
 - [x] Copy-paste ip mechanism 
 - [x] Player can enter a nickname 
-- [ ] Points counter
+- [x] Points counter
 - [ ] Turn and connection info
 - [ ] End game screen
 - [ ] Continue playing for 2nd and 3rd places

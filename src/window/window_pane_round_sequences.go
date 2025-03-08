@@ -1,6 +1,8 @@
 package window
 
 import (
+	"strconv"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 
 	cm "rummy-card-game/src/connection_messages"
@@ -171,4 +173,28 @@ func (window *Window) addNewAvailableSpots(idxs []int, sequenceModel SequenceMod
 func (window *Window) resetAvailableSpots() {
 	window.availableSpots = nil
 	window.availableSpots = make([]gm.AvailableSpot, 0)
+}
+
+func (window *Window) drawPointsCounter() {
+	points := 0
+	for _, card := range window.playerCards {
+		if card.sequenceId != -1 {
+			points += card.srcCard.Rank.Points()
+		}
+	}
+	if points > 0 {
+		pointsInfo := strconv.Itoa(points)
+		pointsInfoSize := GetTextVec(pointsInfo)
+		rl.DrawTextEx(
+			FONT,
+			pointsInfo,
+			rl.NewVector2(
+				float32(WINDOW_WIDTH-LOCK_SEQUENCE_BUTTON_WIDTH)/2-pointsInfoSize.X-16,
+				float32(WINDOW_HEIGHT-CARD_HEIGHT)-2*LOCK_SEQUENCE_BUTTON_HEIGHT-28,
+			),
+			FONT_SIZE,
+			FONT_SPACING,
+			COLOR_BEIGE,
+		)
+	}
 }
