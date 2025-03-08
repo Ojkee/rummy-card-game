@@ -83,7 +83,14 @@ func (table *Table) shuffleInitDrawPile() {
 		skipped := _drawPile[df.SKIP_MELD_HAND_CARDS:]
 		n := len(_drawPile)
 		_drawPile = append(_drawPile[:n-df.SKIP_MELD_HAND_CARDS], skipped...)
-		table.DrawPile.Extend(_drawPile[df.SKIP_MELD_HAND_CARDS:])
+		sameRankDebug := []*dm.Card{
+			dm.NewCard(dm.SPADES, dm.FOUR),
+			dm.NewCard(dm.HEARTS, dm.FOUR),
+			dm.NewCard(dm.CLUBS, dm.FOUR),
+			dm.NewCard(dm.DIAMONDS, dm.FOUR),
+		}
+		sameRankDebug = append(sameRankDebug, _drawPile[df.SKIP_MELD_HAND_CARDS:]...)
+		table.DrawPile.Extend(sameRankDebug)
 	} else {
 		table.DrawPile.ShuffleExtend(_drawPile)
 	}
@@ -201,7 +208,10 @@ func (table *Table) AddNewSequence(cards []*dm.Card, sequenceType gm.SEQUENCE_TY
 		newSequence := *gm.NewSequence(seqId, sortedCards, sequenceType, jokImitations)
 		table.sequences = append(table.sequences, newSequence)
 	} else {
-		table.sequences = append(table.sequences, *gm.NewSequence(seqId, cards, sequenceType, []gm.JokerImitation{}))
+		jokImitations := table.getImitationsFromSameRank(cards)
+		table.jokerImitations[seqId] = jokImitations
+		newSequence := *gm.NewSequence(seqId, cards, sequenceType, jokImitations)
+		table.sequences = append(table.sequences, newSequence)
 	}
 }
 
@@ -385,7 +395,7 @@ func (table *Table) getCardIdFromJokImitations(seqId int, card *dm.Card) (int, e
 		return -1, errors.New("Sequence to update not found")
 	}
 	for _, jokImit := range jokImits {
-		if *jokImit.Card == *card {
+		if *jokImit.Card == *card || (jokImit.CardAlt != nil && *jokImit.CardAlt == *card) {
 			return jokImit.Idx, nil
 		}
 	}
@@ -410,11 +420,87 @@ func (table *Table) filterJokImitation(seqId, cardId int) {
 }
 
 func (table *Table) updateJokerImitation(seqId int) {
-	oldSeqCards := table.sequences[seqId].TableCards
-	newSeqCards, imitations := table.sortAscendingSequence(oldSeqCards)
-	table.sequences[seqId].TableCards = newSeqCards
-	table.sequences[seqId].JokerImitations = imitations
-	table.jokerImitations[seqId] = imitations
+	if table.sequences[seqId].Type == gm.SEQUENCE_SAME_RANK {
+		cards := table.sequences[seqId].TableCards
+		fmt.Println(cards)
+		imitations := table.getImitationsFromSameRank(cards)
+		table.sequences[seqId].JokerImitations = imitations
+		table.jokerImitations[seqId] = imitations
+	} else {
+		oldSeqCards := table.sequences[seqId].TableCards
+		newSeqCards, imitations := table.sortAscendingSequence(oldSeqCards)
+		table.sequences[seqId].TableCards = newSeqCards
+		table.sequences[seqId].JokerImitations = imitations
+		table.jokerImitations[seqId] = imitations
+	}
+}
+
+func (table *Table) getImitationsFromSameRank(cards []*dm.Card) []gm.JokerImitation {
+	jokIdxs := getJokerPositions(cards)
+	if len(jokIdxs) == 0 {
+		return []gm.JokerImitation{}
+	}
+	targetRank := table.getRankFromSameRankSequence(cards)
+	unusedSuits := table.getUnusedSuits(cards)
+
+	if len(jokIdxs) == 1 && len(unusedSuits) == 2 {
+		// 3 CARDS; 1 JOK
+		imitCard := dm.NewCard(unusedSuits[0], targetRank)
+		imitCardAlt := dm.NewCard(unusedSuits[1], targetRank)
+		jokImit := gm.NewJokerImitation(jokIdxs[0], imitCard)
+		jokImit.SetCardAlt(imitCardAlt)
+		return []gm.JokerImitation{*jokImit}
+	} else if len(jokIdxs) == 1 && len(unusedSuits) == 1 {
+		// 4 CARDS; 1 JOK
+		imitCard := dm.NewCard(unusedSuits[0], targetRank)
+		jokImit := gm.NewJokerImitation(jokIdxs[0], imitCard)
+		return []gm.JokerImitation{*jokImit}
+	} else if len(jokIdxs) == 2 && len(unusedSuits) == 3 {
+		// 3 CARDS; 2 JOK
+		cardImit1 := dm.NewCard(unusedSuits[0], targetRank)
+		jokImit1 := gm.NewJokerImitation(jokIdxs[0], cardImit1)
+		cardImit2 := dm.NewCard(unusedSuits[1], targetRank)
+		cardImit2Alt := dm.NewCard(unusedSuits[2], targetRank)
+		jokImit2 := gm.NewJokerImitation(jokIdxs[1], cardImit2)
+		jokImit2.SetCardAlt(cardImit2Alt)
+		return []gm.JokerImitation{*jokImit1, *jokImit2}
+	}
+	// 4 CARDS; 2 JOKS
+	cardImit1 := dm.NewCard(unusedSuits[0], targetRank)
+	cardImit2 := dm.NewCard(unusedSuits[1], targetRank)
+	JokImit1 := gm.NewJokerImitation(jokIdxs[0], cardImit1)
+	JokImit2 := gm.NewJokerImitation(jokIdxs[1], cardImit2)
+	return []gm.JokerImitation{*JokImit1, *JokImit2}
+}
+
+func (table *Table) getRankFromSameRankSequence(cards []*dm.Card) dm.Rank {
+	for _, card := range cards {
+		if card.Rank != dm.JOKER {
+			return card.Rank
+		}
+	}
+	return dm.JOKER
+}
+
+func (table *Table) getUnusedSuits(cards []*dm.Card) []dm.Suit {
+	suitsUsed := map[dm.Suit]bool{
+		dm.HEARTS:   false,
+		dm.DIAMONDS: false,
+		dm.CLUBS:    false,
+		dm.SPADES:   false,
+	}
+	for _, card := range cards {
+		if card.Suit != dm.ANY && !suitsUsed[card.Suit] {
+			suitsUsed[card.Suit] = true
+		}
+	}
+	unusedSuits := make([]dm.Suit, 0)
+	for suit, used := range suitsUsed {
+		if !used {
+			unusedSuits = append(unusedSuits, suit)
+		}
+	}
+	return unusedSuits
 }
 
 func (table *Table) ManageDrawpile() {

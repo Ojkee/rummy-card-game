@@ -157,7 +157,9 @@ func (window *Window) checkEvent() {
 		window.Stop()
 	}
 
-	window.preConnectManagetKeyboardInput()
+	if window.gameState == gm.PRE_CONNECT {
+		window.preConnectManagetKeyboardInput()
+	}
 
 	mousePos := rl.GetMousePosition()
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {

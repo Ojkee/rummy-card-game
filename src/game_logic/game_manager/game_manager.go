@@ -217,10 +217,15 @@ func ContainsJoker(cards []*dm.Card) bool {
 func FitSequenceIds(card *dm.Card, sequence *Sequence) []int {
 	switch sequence.Type {
 	case SEQUENCE_SAME_RANK:
-		if len(sequence.TableCards) >= 4 || usedSuit(&card.Suit, sequence) {
+		if (usedSuit(&card.Suit, sequence) || !sameRank(&card.Rank, sequence)) ||
+			(len(sequence.TableCards) >= 4 && numJokers(sequence.TableCards) == 0) {
 			return []int{}
+		} else if len(sequence.TableCards) == 4 {
+			return getReplaceIds(card, sequence)
 		}
-		return []int{-1, len(sequence.TableCards)}
+		availableIdxs := []int{-1, len(sequence.TableCards)}
+		availableIdxs = append(availableIdxs, getReplaceIds(card, sequence)...)
+		return availableIdxs
 	case SEQUENCE_PURE, SEQUENCE_ASCENDING:
 		if seqSuit := sequence.GetSuitIfAscending(); seqSuit == dm.ANY ||
 			(card.Rank != dm.JOKER && seqSuit != card.Suit) {
@@ -229,6 +234,16 @@ func FitSequenceIds(card *dm.Card, sequence *Sequence) []int {
 		return findInAscending(card, sequence)
 	}
 	return []int{}
+}
+
+func numJokers(cards []*dm.Card) int {
+	joks := 0
+	for _, card := range cards {
+		if card.Rank == dm.JOKER {
+			joks++
+		}
+	}
+	return joks
 }
 
 func usedSuit(suit *dm.Suit, sequence *Sequence) bool {
@@ -241,6 +256,18 @@ func usedSuit(suit *dm.Suit, sequence *Sequence) bool {
 		}
 	}
 	return false
+}
+
+func sameRank(rank *dm.Rank, sequence *Sequence) bool {
+	if *rank == dm.JOKER {
+		return true
+	}
+	for _, card := range sequence.TableCards {
+		if card.Rank != dm.JOKER && card.Rank != *rank {
+			return false
+		}
+	}
+	return true
 }
 
 func findInAscending(card *dm.Card, sequence *Sequence) []int {
@@ -296,7 +323,8 @@ func canAddEnd(card *dm.Card, sequence *Sequence) bool {
 func getReplaceIds(card *dm.Card, sequence *Sequence) []int {
 	replaceIds := make([]int, 0)
 	for _, jokerImitation := range sequence.JokerImitations {
-		if *jokerImitation.Card == *card {
+		if *jokerImitation.Card == *card ||
+			(jokerImitation.CardAlt != nil && *jokerImitation.CardAlt == *card) {
 			return []int{jokerImitation.Idx}
 		}
 	}

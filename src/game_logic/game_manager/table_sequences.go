@@ -11,15 +11,21 @@ const (
 )
 
 type JokerImitation struct {
-	Idx  int      `json:"idx"`
-	Card *dm.Card `json:"imit_card"`
+	Idx     int      `json:"idx"`
+	Card    *dm.Card `json:"imit_card"`
+	CardAlt *dm.Card `json:"imit_card_alt"`
 }
 
 func NewJokerImitation(idx int, card *dm.Card) *JokerImitation {
 	return &JokerImitation{
-		Idx:  idx,
-		Card: card,
+		Idx:     idx,
+		Card:    card,
+		CardAlt: nil,
 	}
+}
+
+func (ji *JokerImitation) SetCardAlt(card *dm.Card) {
+	ji.CardAlt = card
 }
 
 type Sequence struct {
